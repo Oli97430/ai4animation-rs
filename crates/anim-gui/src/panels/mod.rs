@@ -23,3 +23,4 @@ pub mod blend_tree_editor;
 pub mod graph_editor;
 pub mod ragdoll_panel;
 pub mod deep_phase_panel;
+pub mod anim_recorder_panel;

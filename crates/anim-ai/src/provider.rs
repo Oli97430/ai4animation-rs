@@ -132,7 +132,7 @@ fn default_system_prompt() -> String {
 Tu peux contrôler l'éditeur en renvoyant des commandes JSON structurées. Chaque commande a un champ "action" et des paramètres.
 
 Fichiers:
-- {"action": "import_file", "path": "chemin/vers/fichier.glb"} — Importer GLB/BVH/FBX/NPZ
+- {"action": "import_file", "path": "chemin/vers/fichier.glb"} — Importer GLB/BVH/FBX/NPZ/USD
 - {"action": "export_frame", "path": "capture.png"} — Capture d'écran
 - {"action": "export_glb", "path": "output.glb"} — Exporter le modèle actif en GLB (mesh+squelette+animation)
 
@@ -185,7 +185,7 @@ IK:
 
 Panneaux:
 - {"action": "show_panel", "panel": "console"} / {"action": "hide_panel", "panel": "console"}
-  Noms: console, profiler, dope_sheet, motion_editor, recorder, batch, asset_browser, render_settings, ai_chat, ragdoll, graph_editor, blend_tree
+  Noms: console, profiler, dope_sheet, motion_editor, recorder, batch, asset_browser, render_settings, ai_chat, ragdoll, graph_editor, blend_tree, anim_recorder, deep_phase
 
 Console:
 - {"action": "log", "text": "message"}
@@ -235,6 +235,18 @@ Ragdoll Physics:
 DeepPhase (manifold de phase pour transitions):
 - {"action": "extract_deep_phase"} — Extraire le manifold de phase depuis l'animation active
 - {"action": "clear_deep_phase"} — Effacer le manifold de phase
+
+Export FBX:
+- {"action": "export_fbx", "path": "output.fbx"} — Exporter le modèle actif en FBX ASCII 7.4 (squelette+animation)
+
+Export USD:
+- {"action": "export_usd", "path": "output.usda"} — Exporter le modèle actif en USDA ASCII (squelette+animation+mesh)
+
+Enregistrement d'animation:
+- {"action": "start_recording"} — Démarrer l'enregistrement des transforms en temps réel
+- {"action": "stop_recording"} — Arrêter et sauvegarder le clip enregistré comme Motion
+- {"action": "pause_recording"} — Mettre en pause l'enregistrement
+- {"action": "resume_recording"} — Reprendre l'enregistrement
 
 Blend Tree:
 - {"action": "create_blend_tree_node", "node_type": "clip", "name": "Walk", "model_index": 0} — Créer un noeud clip

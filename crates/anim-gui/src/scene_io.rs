@@ -83,6 +83,8 @@ pub struct PanelVisibility {
     pub show_ragdoll: bool,
     #[serde(default)]
     pub show_deep_phase: bool,
+    #[serde(default)]
+    pub show_anim_recorder: bool,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -216,6 +218,7 @@ pub fn save_project(path: &Path, state: &crate::app_state::AppState) -> Result<(
             show_graph_editor: state.show_graph_editor,
             show_ragdoll: state.show_ragdoll,
             show_deep_phase: state.show_deep_phase,
+            show_anim_recorder: state.show_anim_recorder,
         },
         ai_config: None, // AI config saved separately; API keys are not persisted for security
     };
@@ -304,6 +307,7 @@ pub fn apply_project(state: &mut crate::app_state::AppState, project: &ProjectFi
     state.show_graph_editor = project.panels.show_graph_editor;
     state.show_ragdoll = project.panels.show_ragdoll;
     state.show_deep_phase = project.panels.show_deep_phase;
+    state.show_anim_recorder = project.panels.show_anim_recorder;
 
     // Active model index
     if let Some(idx) = project.active_model_index {

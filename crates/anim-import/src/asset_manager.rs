@@ -16,6 +16,7 @@ pub enum AssetFormat {
     Bvh,
     Npz,
     Fbx,
+    Usd,
 }
 
 impl AssetFormat {
@@ -28,13 +29,14 @@ impl AssetFormat {
             "bvh" => Some(Self::Bvh),
             "npz" => Some(Self::Npz),
             "fbx" => Some(Self::Fbx),
+            "usd" | "usda" | "usdc" => Some(Self::Usd),
             _ => None,
         }
     }
 
     /// File filter for native file dialogs.
     pub fn all_extensions() -> &'static [&'static str] {
-        &["glb", "gltf", "bvh", "npz", "fbx"]
+        &["glb", "gltf", "bvh", "npz", "fbx", "usd", "usda"]
     }
 }
 
@@ -202,6 +204,10 @@ fn load_by_format(path: &Path, format: AssetFormat) -> Result<ImportedModel> {
         }
         AssetFormat::Fbx => {
             FbxImporter::load(path)
+        }
+        AssetFormat::Usd => {
+            crate::usd_exporter::import_usd(path)
+                .map_err(|e| anyhow::anyhow!("{}", e))
         }
     }
 }

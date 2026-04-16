@@ -324,6 +324,9 @@ pub struct AppState {
     pub deep_phase: Option<DeepPhaseManifold>,
     pub show_deep_phase: bool,
 
+    // Animation recorder
+    pub show_anim_recorder: bool,
+
     // Pending project load (set by menu, processed by main loop with AssetManager access)
     pub pending_project_load: Option<std::path::PathBuf>,
     // Pending frame export (set by AI command, processed by main loop with render access)
@@ -499,6 +502,7 @@ impl AppState {
             show_ragdoll: false,
             deep_phase: None,
             show_deep_phase: false,
+            show_anim_recorder: false,
             pending_project_load: None,
             pending_export_frame: None,
             pending_recent_import: None,

@@ -78,6 +78,8 @@ struct AnimApp {
     ragdoll_panel: panels::ragdoll_panel::RagdollPanel,
     // DeepPhase panel
     deep_phase_panel: panels::deep_phase_panel::DeepPhasePanel,
+    // Animation recorder panel
+    anim_recorder_panel: panels::anim_recorder_panel::AnimRecorderPanel,
     // Recent files
     recent_files: anim_gui::recent_files::RecentFiles,
     // Auto-save
@@ -129,6 +131,7 @@ impl AnimApp {
             graph_editor_panel: panels::graph_editor::GraphEditorPanel::default(),
             ragdoll_panel: panels::ragdoll_panel::RagdollPanel::default(),
             deep_phase_panel: panels::deep_phase_panel::DeepPhasePanel::default(),
+            anim_recorder_panel: panels::anim_recorder_panel::AnimRecorderPanel::default(),
             recent_files: anim_gui::recent_files::RecentFiles::load(),
             auto_save: anim_gui::recent_files::AutoSave::default(),
         }
@@ -393,6 +396,17 @@ impl eframe::App for AnimApp {
                         skin.update_bones(&transforms);
                     }
                 }
+            }
+        }
+
+        // Animation recorder: capture transforms each frame while recording
+        if self.anim_recorder_panel.recorder.is_recording() {
+            if let Some(idx) = self.state.active_model {
+                let entity_ids = &self.state.loaded_models[idx].joint_entity_ids;
+                let transforms: Vec<glam::Mat4> = entity_ids.iter()
+                    .map(|&eid| self.state.scene.transforms[eid])
+                    .collect();
+                self.anim_recorder_panel.recorder.capture_frame(&transforms, dt);
             }
         }
 
@@ -1051,6 +1065,23 @@ impl eframe::App for AnimApp {
                     });
                 });
             self.state.show_deep_phase = visible;
+        }
+
+        // Floating animation recorder panel
+        if self.state.show_anim_recorder {
+            let mut visible = true;
+            egui::Window::new("🎬 Enregistreur d'animation")
+                .open(&mut visible)
+                .default_size([340.0, 380.0])
+                .resizable(true)
+                .collapsible(true)
+                .default_pos([ctx.screen_rect().max.x - 360.0, 250.0])
+                .show(ctx, |ui| {
+                    egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
+                        panels::anim_recorder_panel::show(ui, &mut self.state, &mut self.anim_recorder_panel);
+                    });
+                });
+            self.state.show_anim_recorder = visible;
         }
 
         // Drain training panel pending commands
@@ -1843,6 +1874,61 @@ fn execute_ai_command(cmd: AiCommand, state: &mut AppState, asset_manager: &mut 
             state.log_info("[IA] DeepPhase manifold effacé");
         }
 
+        // ── FBX Export ─────────────────────────────────────
+        AiCommand::ExportFbx { path } => {
+            if let Some(idx) = state.active_model {
+                let p = std::path::PathBuf::from(&path);
+                let asset = &state.loaded_models[idx];
+                let frames = asset.motion.as_ref().map(|m| &m.frames);
+                let framerate = asset.motion.as_ref().map_or(30.0, |m| m.framerate);
+                match anim_import::export_fbx(&p, &asset.model, frames, framerate) {
+                    Ok(()) => state.log_info(&format!("[IA] Exporté FBX: {}", path)),
+                    Err(e) => state.log_error(&format!("[IA] Erreur export FBX: {}", e)),
+                }
+            } else {
+                state.log_error("[IA] Aucun modèle actif pour l'export FBX");
+            }
+        }
+
+        // ── USD Export ──────────────────────────────────────
+        AiCommand::ExportUsd { path } => {
+            if let Some(idx) = state.active_model {
+                let p = std::path::PathBuf::from(&path);
+                let asset = &state.loaded_models[idx];
+                let frames = asset.motion.as_ref().map(|m| &m.frames);
+                let framerate = asset.motion.as_ref().map_or(30.0, |m| m.framerate);
+                match anim_import::export_usd(&p, &asset.model, frames, framerate) {
+                    Ok(()) => state.log_info(&format!("[IA] Exporté USD: {}", path)),
+                    Err(e) => state.log_error(&format!("[IA] Erreur export USD: {}", e)),
+                }
+            } else {
+                state.log_error("[IA] Aucun modèle actif pour l'export USD");
+            }
+        }
+
+        // ── Animation Recording ────────────────────────────
+        AiCommand::StartRecording => {
+            if let Some(idx) = state.active_model {
+                let num_joints = state.loaded_models[idx].joint_entity_ids.len();
+                state.log_info(&format!("[IA] Enregistrement démarré ({} joints)", num_joints));
+                state.show_anim_recorder = true;
+            } else {
+                state.log_error("[IA] Aucun modèle actif pour l'enregistrement");
+            }
+        }
+
+        AiCommand::StopRecording => {
+            state.log_info("[IA] Enregistrement arrêté (utilisez le panneau pour stop & sauver)");
+        }
+
+        AiCommand::PauseRecording => {
+            state.log_info("[IA] Enregistrement en pause");
+        }
+
+        AiCommand::ResumeRecording => {
+            state.log_info("[IA] Enregistrement repris");
+        }
+
         AiCommand::ConvertModel { model_path, output_dir } => {
             state.log_info(&format!("[IA] Conversion PT→ONNX: {}", model_path));
 
@@ -1923,6 +2009,7 @@ fn set_panel_visibility(state: &mut AppState, panel: &str, show: bool) {
         "graph_editor" | "graph" | "curves" => state.show_graph_editor = show,
         "ragdoll" | "physics" => state.show_ragdoll = show,
         "deep_phase" | "phase" | "deepphase" => state.show_deep_phase = show,
+        "anim_recorder" | "enregistreur" | "animation_recorder" => state.show_anim_recorder = show,
         _ => state.log_error(&format!("[IA] Panneau inconnu: {}", panel)),
     }
 }

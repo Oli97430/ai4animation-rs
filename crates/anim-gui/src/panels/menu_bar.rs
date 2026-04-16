@@ -120,6 +120,18 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
                 }
                 ui.close_menu();
             }
+            if menu_item(ui, "📥", "Importer USD", "") {
+                if let Some(path) = rfd::FileDialog::new()
+                    .add_filter("USD/USDA", &["usd", "usda"])
+                    .pick_file()
+                {
+                    match anim_import::import_usd(&path) {
+                        Ok(model) => state.import_model_from_path(model, &path),
+                        Err(e) => state.log_error(&format!("Erreur USD: {}", e)),
+                    }
+                }
+                ui.close_menu();
+            }
 
             ui.separator();
 
@@ -214,6 +226,70 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
                                 ));
                             }
                             Err(e) => state.log_error(&format!("Erreur export GLB: {}", e)),
+                        }
+                    }
+                }
+                ui.close_menu();
+            }
+
+            // Export FBX
+            let btn_fbx = egui::Button::new(RichText::new("📤 Exporter FBX").size(12.0));
+            if ui.add_enabled(has_model, btn_fbx).clicked() {
+                if let Some(idx) = state.active_model {
+                    if let Some(path) = rfd::FileDialog::new()
+                        .add_filter("FBX", &["fbx"])
+                        .set_file_name(&format!("{}.fbx", state.loaded_models[idx].name))
+                        .save_file()
+                    {
+                        let asset = &state.loaded_models[idx];
+                        let frames = asset.motion.as_ref().map(|m| &m.frames);
+                        let framerate = asset.motion.as_ref().map_or(30.0, |m| m.framerate);
+                        match anim_import::export_fbx(
+                            &path,
+                            &asset.model,
+                            frames,
+                            framerate,
+                        ) {
+                            Ok(()) => {
+                                let frame_count = asset.motion.as_ref().map_or(0, |m| m.num_frames());
+                                state.log_info(&format!(
+                                    "Exporté FBX: {} ({} joints, {} frames)",
+                                    path.display(), asset.model.num_joints(), frame_count
+                                ));
+                            }
+                            Err(e) => state.log_error(&format!("Erreur export FBX: {}", e)),
+                        }
+                    }
+                }
+                ui.close_menu();
+            }
+
+            // Export USD
+            let btn_usd = egui::Button::new(RichText::new("📤 Exporter USD").size(12.0));
+            if ui.add_enabled(has_model, btn_usd).clicked() {
+                if let Some(idx) = state.active_model {
+                    if let Some(path) = rfd::FileDialog::new()
+                        .add_filter("USDA", &["usda", "usd"])
+                        .set_file_name(&format!("{}.usda", state.loaded_models[idx].name))
+                        .save_file()
+                    {
+                        let asset = &state.loaded_models[idx];
+                        let frames = asset.motion.as_ref().map(|m| &m.frames);
+                        let framerate = asset.motion.as_ref().map_or(30.0, |m| m.framerate);
+                        match anim_import::export_usd(
+                            &path,
+                            &asset.model,
+                            frames,
+                            framerate,
+                        ) {
+                            Ok(()) => {
+                                let frame_count = asset.motion.as_ref().map_or(0, |m| m.num_frames());
+                                state.log_info(&format!(
+                                    "Exporté USD: {} ({} joints, {} frames)",
+                                    path.display(), asset.model.num_joints(), frame_count
+                                ));
+                            }
+                            Err(e) => state.log_error(&format!("Erreur export USD: {}", e)),
                         }
                     }
                 }
@@ -384,6 +460,7 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
             ui.checkbox(&mut state.show_graph_editor, RichText::new("📈 Éditeur de courbes").size(11.5));
             ui.checkbox(&mut state.show_ragdoll, RichText::new("🦴 Ragdoll Physics").size(11.5));
             ui.checkbox(&mut state.show_deep_phase, RichText::new("🌊 DeepPhase").size(11.5));
+            ui.checkbox(&mut state.show_anim_recorder, RichText::new("🎬 Enregistreur").size(11.5));
         });
 
         // ── Animation ───────────────────────────────────────

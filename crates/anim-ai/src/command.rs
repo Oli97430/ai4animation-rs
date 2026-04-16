@@ -258,6 +258,26 @@ pub enum AiCommand {
     /// Clear the DeepPhase manifold.
     ClearDeepPhase,
 
+    // ── FBX Export ───────────────────────────────────
+    /// Export the active model as FBX (ASCII 7.4).
+    ExportFbx { path: String },
+
+    /// Export the active model as USD (USDA ASCII).
+    ExportUsd { path: String },
+
+    // ── Animation Recording ─────────────────────────
+    /// Start recording animation transforms.
+    StartRecording,
+
+    /// Stop recording and save the clip.
+    StopRecording,
+
+    /// Pause the current recording.
+    PauseRecording,
+
+    /// Resume a paused recording.
+    ResumeRecording,
+
     /// Create a node in the blend tree.
     CreateBlendTreeNode {
         /// Node type: "clip", "blend1d" / "1d", "blend2d" / "2d", "lerp"
