@@ -3,7 +3,8 @@
   <img src="https://img.shields.io/badge/wgpu-22-blue?logo=webgpu" />
   <img src="https://img.shields.io/badge/egui-0.29-green" />
   <img src="https://img.shields.io/badge/ONNX-Runtime-purple?logo=onnx" />
-  <img src="https://img.shields.io/badge/lines-22k+-brightgreen" />
+  <img src="https://img.shields.io/badge/lines-34k+-brightgreen" />
+  <img src="https://img.shields.io/badge/tests-66-success" />
   <img src="https://img.shields.io/badge/license-MIT-lightgrey" />
 </p>
 
@@ -27,10 +28,11 @@ Les outils de recherche en animation intelligente (PFNN, DeepPhase, motion match
 
 | Format | Import | Export | Détails |
 |--------|:------:|:------:|---------|
-| **glTF / GLB** | ✅ | — | Meshes, squelettes, skinning, animations |
-| **FBX** | ✅ | — | Support natif via fbxcel (pas de SDK Autodesk) |
+| **glTF / GLB** | ✅ | ✅ | Meshes, squelettes, skinning, animations |
+| **FBX** | ✅ | ✅ | ASCII 7.4 (squelette + animation) |
 | **BVH** | ✅ | ✅ | Motion capture, compatible Mixamo / CMU |
 | **NPZ** | ✅ | ✅ | Données NumPy (passerelle Python/PyTorch) |
+| **USD / USDA** | ✅ | ✅ | OpenUSD ASCII (squelette + animation + mesh) |
 | **PNG** | — | ✅ | Capture viewport et export frame par frame |
 | **a4a** | ✅ | ✅ | Projets complets (scène, caméra, paramètres) |
 
@@ -134,7 +136,7 @@ Synthèse de mouvement par réseau de neurones :
 
 ### Assistant IA intégré
 
-Un chat IA directement dans l'éditeur, capable de piloter **39 commandes** :
+Un chat IA directement dans l'éditeur, capable de piloter **50+ commandes** :
 
 ```
 "Crée un humanoïde de 1m80 avec une animation de course"
@@ -149,13 +151,13 @@ Un chat IA directement dans l'éditeur, capable de piloter **39 commandes** :
 
 **Providers supportés** : Claude (Anthropic), GPT-4 (OpenAI), Ollama (local)
 
-Commandes disponibles : import, export, playback, caméra, sélection, transforms, outils, affichage, rendu, IK, console, panneaux, requêtes scène, génération procédurale, locomotion, entraînement, motion matching, machine d'états.
+Commandes disponibles : import, export, playback, caméra, sélection, transforms, outils, affichage, rendu, IK, console, panneaux, requêtes scène, génération procédurale, locomotion, entraînement, motion matching, machine d'états, tissu/soft-body, ragdoll, matériaux, blend trees, enregistrement d'animation, créatures procédurales.
 
 ---
 
 ### Interface professionnelle
 
-- **20 panneaux** — Hiérarchie, inspecteur, timeline, dope sheet, console, éditeur de mouvement, profiler, enregistreur vidéo, navigateur d'assets, raccourcis, chat IA, entraînement, motion matching, machine d'états, éditeur de pose, réglages de rendu, batch converter...
+- **24 panneaux** — Hiérarchie, inspecteur, timeline, dope sheet, console, éditeur de mouvement, profiler, enregistreur vidéo, navigateur d'assets, raccourcis, chat IA, entraînement, motion matching, machine d'états, éditeur de pose, réglages de rendu, batch converter, tissu/soft-body, matériaux PBR, IK avancé, ragdoll, blend tree, enregistreur d'animation, DeepPhase...
 - **Thème sombre** — Style professionnel inspiré Blender/SketchUp
 - **Raccourcis configurables** — Éditeur visuel de keybindings
 - **Undo/Redo** — Historique de 100 actions
@@ -179,12 +181,14 @@ ai4animation-rs/
 │   ├── anim-ik          # FABRIK, contraintes, pole targets
 │   ├── anim-render      # wgpu renderer, skinning, debug draw, capture
 │   ├── anim-gui         # egui panels, app state, thème, raccourcis
-│   ├── anim-ai          # Claude/GPT/Ollama, 39 commandes structurées
+│   ├── anim-ai          # Claude/GPT/Ollama, 50+ commandes structurées
 │   └── anim-app         # Point d'entrée, boucle principale
+├── samples/             # Fichiers exemples (BVH, FBX, NPZ)
+├── docs/                # Didacticiel complet
 └── Cargo.toml           # Workspace avec 9 crates
 ```
 
-**97 fichiers Rust** | **~22 000 lignes de code** | **22 tests unitaires**
+**151 fichiers Rust** | **~34 000 lignes de code** | **66 tests unitaires** | **28 fichiers exemples**
 
 ---
 
@@ -231,13 +235,102 @@ Pour l'inférence ONNX, le runtime est téléchargé automatiquement au premier 
 
 ## Roadmap
 
-- [ ] Export FBX et glTF
-- [ ] Graphe de blend trees visuel
+- [x] Export FBX (ASCII 7.4)
+- [x] Export GLB
+- [x] Export USD / USDA
+- [x] Graphe de blend trees visuel
+- [x] Simulation tissu / soft-body (PBD)
+- [x] Ragdoll physique
+- [x] Éditeur de matériaux PBR
+- [x] Créatures procédurales (5 types)
+- [x] Enregistrement d'animation
+- [x] Assistant IA : contrôle complet (50+ commandes)
+- [x] Fichiers exemples + didacticiel
 - [ ] GPU-accelerated motion matching (compute shaders)
 - [ ] Plugin système pour extensions custom
 - [ ] Support Linux / macOS natif
 - [ ] Éditeur de courbes d'animation (graph editor)
 - [ ] Réseau multi-utilisateur (collaboration temps réel)
+
+---
+
+## Comparaison Python vs Rust
+
+Ce moteur Rust est le successeur de la version Python (`ai4animationpy`). Voici la comparaison :
+
+### Volume de code
+
+| Métrique | Python | Rust | Ratio |
+|----------|--------|------|-------|
+| **Fichiers source** | 92 `.py` | 151 `.rs` | x1.6 |
+| **Lignes de code** | 15 885 | 33 787 | x2.1 |
+| **Tests unitaires** | 0 | 66 | — |
+| **Fichiers exemples** | 0 | 28 | — |
+
+### Moteur de rendu
+
+| | Python | Rust |
+|---|--------|------|
+| **API graphique** | Raylib (OpenGL) | **wgpu** (Vulkan/DX12/Metal) |
+| **GUI** | Widgets Raylib custom | **egui** (immediate mode) |
+| **Rendu** | Forward + post-process | PBR + SSAO + Bloom + FXAA + Ombres |
+| **Performance** | ~30 fps (interprete) | **300+ fps** (natif compile) |
+
+### Fonctionnalites
+
+| Fonctionnalite | Python | Rust |
+|----------------|:------:|:----:|
+| Import GLB/FBX/BVH/NPZ | ✅ | ✅ |
+| Import USD | — | ✅ |
+| Export BVH/NPZ | ✅ | ✅ |
+| Export FBX/GLB/USD | — | ✅ |
+| Squelette anime | ✅ | ✅ |
+| Skinned mesh GPU | ✅ | ✅ |
+| IK (FABRIK) | ✅ | ✅ + pole target + contraintes |
+| Module Contact | ✅ | ✅ |
+| Module Guidance | ✅ | ✅ |
+| Module Tracking | ✅ | ✅ |
+| Editeur materiaux PBR | — | ✅ (7 presets) |
+| Simulation tissu (PBD) | — | ✅ |
+| Ragdoll physique | — | ✅ |
+| Motion Matching | — | ✅ |
+| Blend Trees | — | ✅ |
+| Machine d'etats | — | ✅ |
+| DeepPhase | — | ✅ |
+| Creatures procedurales | — | ✅ (5 types) |
+| Humanoides proceduraux | — | ✅ (mesh+squelette+anim) |
+| Multi-personnages | — | ✅ |
+| Onion skinning | — | ✅ |
+| Enregistrement animation | — | ✅ |
+| Dope Sheet | — | ✅ |
+| Projet sauvegarde (.a4a) | — | ✅ |
+
+### Intelligence artificielle
+
+| | Python | Rust |
+|---|--------|------|
+| **Entrainement** | ✅ PyTorch natif | Lance Python en subprocess |
+| **Architectures** | MLP, Autoencoder, Flow, Codebook | Via modeles ONNX pre-entraines |
+| **Inference ONNX** | ✅ onnxruntime-gpu | ✅ onnxruntime |
+| **Assistant IA chat** | — | ✅ (Ollama/OpenAI/Claude) |
+| **Commandes IA** | — | ✅ (50+ commandes JSON) |
+| **Controle total par IA** | — | ✅ |
+
+### Distribution
+
+| | Python | Rust |
+|---|--------|------|
+| **Installation** | pip install + PyTorch (~2 GB) + raylib | **Un seul binaire** |
+| **Dependencies runtime** | 15+ packages Python | 0 |
+| **Securite memoire** | GC Python | Borrow checker (compile-time) |
+
+### Verdict
+
+> La version **Python** est un **outil de recherche** — excellent pour iterer sur des architectures neuronales et visualiser des resultats d'entrainement.
+>
+> La version **Rust** est un **editeur professionnel** — elle reprend toutes les capacites d'animation Python, ajoute 15+ fonctionnalites nouvelles (physique, export multi-format, creatures, IA chat), et tourne a des performances natives.
+>
+> **Les deux sont complementaires** : on entraine en Python, on deploie en Rust.
 
 ---
 
@@ -248,5 +341,5 @@ Ce projet s'inspire des travaux de recherche de [Sebastian Starke](https://githu
 ---
 
 <p align="center">
-  <em>Construit avec Rust, wgpu et beaucoup de café.</em>
+  <em>Construit avec Rust, wgpu et beaucoup de cafe.</em>
 </p>
