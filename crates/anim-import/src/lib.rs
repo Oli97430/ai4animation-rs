@@ -28,4 +28,4 @@ pub use npz_exporter::export_npz;
 pub use batch_converter::{BatchConfig, convert_directory, collect_animation_files};
 pub use presets::SkeletonPreset;
 pub use asset_manager::{AssetManager, AssetFormat};
-pub use procedural::{generate_humanoid_with_animation, HumanoidConfig, BodyColors};
+pub use procedural::{generate_humanoid_with_animation, HumanoidConfig, BodyColors, generate_creature};

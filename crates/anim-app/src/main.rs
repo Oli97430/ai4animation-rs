@@ -80,6 +80,12 @@ struct AnimApp {
     deep_phase_panel: panels::deep_phase_panel::DeepPhasePanel,
     // Animation recorder panel
     anim_recorder_panel: panels::anim_recorder_panel::AnimRecorderPanel,
+    // Material editor panel
+    material_editor_panel: panels::material_editor::MaterialEditorPanel,
+    // Cloth panel
+    cloth_panel: panels::cloth_panel::ClothPanel,
+    // IK panel
+    ik_panel: panels::ik_panel::IkPanel,
     // Recent files
     recent_files: anim_gui::recent_files::RecentFiles,
     // Auto-save
@@ -132,6 +138,9 @@ impl AnimApp {
             ragdoll_panel: panels::ragdoll_panel::RagdollPanel::default(),
             deep_phase_panel: panels::deep_phase_panel::DeepPhasePanel::default(),
             anim_recorder_panel: panels::anim_recorder_panel::AnimRecorderPanel::default(),
+            material_editor_panel: panels::material_editor::MaterialEditorPanel::default(),
+            cloth_panel: panels::cloth_panel::ClothPanel::default(),
+            ik_panel: panels::ik_panel::IkPanel::default(),
             recent_files: anim_gui::recent_files::RecentFiles::load(),
             auto_save: anim_gui::recent_files::AutoSave::default(),
         }
@@ -397,6 +406,11 @@ impl eframe::App for AnimApp {
                     }
                 }
             }
+        }
+
+        // Cloth / soft-body step
+        if let Some(ref mut cloth) = self.state.cloth_sim {
+            cloth.step(dt);
         }
 
         // Animation recorder: capture transforms each frame while recording
@@ -1082,6 +1096,57 @@ impl eframe::App for AnimApp {
                     });
                 });
             self.state.show_anim_recorder = visible;
+        }
+
+        // Floating material editor panel
+        if self.state.show_material_editor {
+            let mut visible = true;
+            egui::Window::new("🎨 Éditeur de matériaux")
+                .open(&mut visible)
+                .default_size([300.0, 380.0])
+                .resizable(true)
+                .collapsible(true)
+                .default_pos([ctx.screen_rect().max.x - 320.0, 350.0])
+                .show(ctx, |ui| {
+                    egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
+                        panels::material_editor::show(ui, &mut self.state, &mut self.material_editor_panel);
+                    });
+                });
+            self.state.show_material_editor = visible;
+        }
+
+        // Floating cloth panel
+        if self.state.show_cloth {
+            let mut visible = true;
+            egui::Window::new("🧵 Tissu / Soft-body")
+                .open(&mut visible)
+                .default_size([320.0, 400.0])
+                .resizable(true)
+                .collapsible(true)
+                .default_pos([150.0, 200.0])
+                .show(ctx, |ui| {
+                    egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
+                        panels::cloth_panel::show(ui, &mut self.state, &mut self.cloth_panel);
+                    });
+                });
+            self.state.show_cloth = visible;
+        }
+
+        // Floating IK panel
+        if self.state.show_ik_panel {
+            let mut visible = true;
+            egui::Window::new("🎯 IK avancé")
+                .open(&mut visible)
+                .default_size([340.0, 450.0])
+                .resizable(true)
+                .collapsible(true)
+                .default_pos([ctx.screen_rect().max.x - 360.0, 60.0])
+                .show(ctx, |ui| {
+                    egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
+                        panels::ik_panel::show(ui, &mut self.state, &mut self.ik_panel);
+                    });
+                });
+            self.state.show_ik_panel = visible;
         }
 
         // Drain training panel pending commands
@@ -1929,6 +1994,72 @@ fn execute_ai_command(cmd: AiCommand, state: &mut AppState, asset_manager: &mut 
             state.log_info("[IA] Enregistrement repris");
         }
 
+        // ── Cloth / Soft-body ──────────────────────────────
+        AiCommand::CreateCloth { width, height, size } => {
+            let origin = glam::Vec3::new(-size * 0.5, 2.0, -size * 0.5);
+            let right = glam::Vec3::new(size, 0.0, 0.0);
+            let down = glam::Vec3::new(0.0, 0.0, size);
+            let mut cloth = anim_animation::ClothSim::new_grid(origin, right, down, width, height);
+            cloth.pin_top_row();
+            state.cloth_sim = Some(cloth);
+            state.show_cloth = true;
+            state.log_info(&format!("[IA] Tissu {}×{} créé", width, height));
+        }
+
+        AiCommand::DestroyCloth => {
+            state.cloth_sim = None;
+            state.log_info("[IA] Tissu supprimé");
+        }
+
+        AiCommand::ToggleCloth { enabled } => {
+            if let Some(ref mut cloth) = state.cloth_sim {
+                cloth.active = enabled;
+                state.log_info(&format!("[IA] Tissu {}",
+                    if enabled { "activé" } else { "en pause" }));
+            } else if enabled {
+                // Auto-create
+                let mut cloth = anim_animation::ClothSim::new_grid(
+                    glam::Vec3::new(-0.75, 2.0, -0.75),
+                    glam::Vec3::new(1.5, 0.0, 0.0),
+                    glam::Vec3::new(0.0, 0.0, 1.5),
+                    12, 12,
+                );
+                cloth.pin_top_row();
+                state.cloth_sim = Some(cloth);
+                state.show_cloth = true;
+                state.log_info("[IA] Tissu créé et activé");
+            }
+        }
+
+        // ── Material ──────────────────────────────────────
+        AiCommand::SetMaterial { color, metallic, roughness } => {
+            if let Some(idx) = state.active_model {
+                if let Some(ref mut mesh) = state.loaded_models[idx].skinned_mesh {
+                    if let Some([r, g, b]) = color {
+                        mesh.color = [r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0, 1.0];
+                    }
+                    if let Some(m) = metallic {
+                        mesh.metallic = m.clamp(0.0, 1.0);
+                    }
+                    if let Some(r) = roughness {
+                        mesh.roughness = r.clamp(0.0, 1.0);
+                    }
+                    state.log_info("[IA] Matériau mis à jour");
+                    state.show_material_editor = true;
+                }
+            } else {
+                state.log_error("[IA] Aucun modèle actif");
+            }
+        }
+
+        // ── Procedural creatures ───────────────────────────
+        AiCommand::CreateCreature { creature_type, height } => {
+            let model = anim_import::generate_creature(&creature_type, height.clamp(0.1, 5.0));
+            let name = model.name.clone();
+            state.import_model(model);
+            state.log_info(&format!("[IA] Créature créée: {} ({:.1}m)", name, height));
+        }
+
         AiCommand::ConvertModel { model_path, output_dir } => {
             state.log_info(&format!("[IA] Conversion PT→ONNX: {}", model_path));
 
@@ -2010,6 +2141,9 @@ fn set_panel_visibility(state: &mut AppState, panel: &str, show: bool) {
         "ragdoll" | "physics" => state.show_ragdoll = show,
         "deep_phase" | "phase" | "deepphase" => state.show_deep_phase = show,
         "anim_recorder" | "enregistreur" | "animation_recorder" => state.show_anim_recorder = show,
+        "material" | "materials" | "materiaux" => state.show_material_editor = show,
+        "cloth" | "tissu" | "soft_body" => state.show_cloth = show,
+        "ik" | "ik_panel" | "inverse_kinematics" => state.show_ik_panel = show,
         _ => state.log_error(&format!("[IA] Panneau inconnu: {}", panel)),
     }
 }

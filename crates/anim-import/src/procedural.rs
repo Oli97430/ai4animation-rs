@@ -737,3 +737,428 @@ pub fn generate_humanoid_with_animation(
     model.animation_frames = Some(anim);
     model
 }
+
+// ── Procedural creatures ──────────────────────────────────────
+
+/// Generate a procedural spider model (8 legs, body + head).
+pub fn generate_spider(height: f32) -> ImportedModel {
+    let scale = height / 0.3;
+    let c_body = [40, 35, 30, 255u8];
+    let c_leg = [50, 45, 35, 255u8];
+
+    // Skeleton: body_center, head, 8 legs (hip + knee + foot = 3 joints each = 24 leg joints)
+    let mut joint_defs: Vec<(&str, i32, Vec3)> = vec![
+        ("Body",  -1, Vec3::new(0.0, 0.15, 0.0)),
+        ("Head",   0, Vec3::new(0.0, 0.18, 0.12)),
+        ("Abdomen", 0, Vec3::new(0.0, 0.14, -0.15)),
+    ];
+
+    let leg_angles = [45.0_f32, 20.0, -20.0, -45.0]; // front to back
+    let leg_names = [
+        ("LF", 1.0), ("LMF", 1.0), ("LMB", 1.0), ("LB", 1.0),
+        ("RF", -1.0), ("RMF", -1.0), ("RMB", -1.0), ("RB", -1.0),
+    ];
+
+    for (i, &(_name, side)) in leg_names.iter().enumerate() {
+        let angle_idx = i % 4;
+        let angle = leg_angles[angle_idx].to_radians();
+        let parent = 0i32; // body
+        let base_idx = joint_defs.len() as i32;
+
+        let hip = Vec3::new(side * 0.06, 0.14, angle.sin() * 0.08);
+        let knee = Vec3::new(side * 0.18, 0.22, angle.sin() * 0.15);
+        let foot = Vec3::new(side * 0.25, 0.0, angle.sin() * 0.2);
+
+        joint_defs.push((&"Hip", parent, hip));
+        joint_defs.push((&"Knee", base_idx, knee));
+        joint_defs.push((&"Foot", base_idx + 1, foot));
+    }
+
+    let joint_names: Vec<String> = {
+        let mut names = vec!["Body".to_string(), "Head".to_string(), "Abdomen".to_string()];
+        for (_i, &(name, _)) in leg_names.iter().enumerate() {
+            names.push(format!("{}_Hip", name));
+            names.push(format!("{}_Knee", name));
+            names.push(format!("{}_Foot", name));
+        }
+        names
+    };
+
+    let parent_indices: Vec<i32> = joint_defs.iter().map(|(_, p, _)| *p).collect();
+    let positions: Vec<Vec3> = joint_defs.iter().map(|(_, _, p)| *p * scale).collect();
+
+    // Build segments
+    let mut segments = vec![
+        BoneSegment { joint_a: 0, joint_b: 1, radius: 0.05, color: c_body }, // body-head
+        BoneSegment { joint_a: 0, joint_b: 2, radius: 0.07, color: c_body }, // body-abdomen
+    ];
+    for leg in 0..8 {
+        let base = 3 + leg * 3;
+        segments.push(BoneSegment { joint_a: base, joint_b: base + 1, radius: 0.015, color: c_leg });
+        segments.push(BoneSegment { joint_a: base + 1, joint_b: base + 2, radius: 0.01, color: c_leg });
+    }
+
+    build_creature_model("Spider", &joint_names, &parent_indices, &positions, &segments, scale)
+}
+
+/// Generate a procedural crab model (6 legs + 2 claws).
+pub fn generate_crab(height: f32) -> ImportedModel {
+    let scale = height / 0.2;
+    let c_body = [180, 60, 30, 255u8];
+    let c_leg = [160, 55, 25, 255u8];
+    let c_claw = [200, 70, 35, 255u8];
+
+    let joint_names = vec![
+        "Body", "LeftEye", "RightEye",
+        "LClaw_Base", "LClaw_Mid", "LClaw_Tip",
+        "RClaw_Base", "RClaw_Mid", "RClaw_Tip",
+        "L1_Hip", "L1_Knee", "L1_Foot",
+        "L2_Hip", "L2_Knee", "L2_Foot",
+        "L3_Hip", "L3_Knee", "L3_Foot",
+        "R1_Hip", "R1_Knee", "R1_Foot",
+        "R2_Hip", "R2_Knee", "R2_Foot",
+        "R3_Hip", "R3_Knee", "R3_Foot",
+    ].iter().map(|s| s.to_string()).collect::<Vec<_>>();
+
+    let parent_indices = vec![
+        -1, 0, 0,          // body, eyes
+        0, 3, 4,            // left claw
+        0, 6, 7,            // right claw
+        0, 9, 10,           // legs L1-L3
+        0, 12, 13,
+        0, 15, 16,
+        0, 18, 19,          // legs R1-R3
+        0, 21, 22,
+        0, 24, 25,
+    ];
+
+    let positions: Vec<Vec3> = vec![
+        Vec3::new(0.0, 0.08, 0.0),
+        Vec3::new(0.04, 0.12, 0.06),
+        Vec3::new(-0.04, 0.12, 0.06),
+        // Left claw
+        Vec3::new(0.08, 0.08, 0.05),
+        Vec3::new(0.16, 0.10, 0.08),
+        Vec3::new(0.22, 0.09, 0.06),
+        // Right claw
+        Vec3::new(-0.08, 0.08, 0.05),
+        Vec3::new(-0.16, 0.10, 0.08),
+        Vec3::new(-0.22, 0.09, 0.06),
+        // Left legs
+        Vec3::new(0.06, 0.06, -0.02), Vec3::new(0.14, 0.12, -0.04), Vec3::new(0.18, 0.0, -0.05),
+        Vec3::new(0.06, 0.06, -0.06), Vec3::new(0.15, 0.12, -0.10), Vec3::new(0.19, 0.0, -0.12),
+        Vec3::new(0.05, 0.06, -0.10), Vec3::new(0.14, 0.12, -0.16), Vec3::new(0.18, 0.0, -0.18),
+        // Right legs
+        Vec3::new(-0.06, 0.06, -0.02), Vec3::new(-0.14, 0.12, -0.04), Vec3::new(-0.18, 0.0, -0.05),
+        Vec3::new(-0.06, 0.06, -0.06), Vec3::new(-0.15, 0.12, -0.10), Vec3::new(-0.19, 0.0, -0.12),
+        Vec3::new(-0.05, 0.06, -0.10), Vec3::new(-0.14, 0.12, -0.16), Vec3::new(-0.18, 0.0, -0.18),
+    ].iter().map(|p| *p * scale).collect();
+
+    let mut segments = vec![
+        BoneSegment { joint_a: 0, joint_b: 0, radius: 0.08, color: c_body }, // body
+        BoneSegment { joint_a: 0, joint_b: 1, radius: 0.012, color: c_body }, // eyes
+        BoneSegment { joint_a: 0, joint_b: 2, radius: 0.012, color: c_body },
+    ];
+    // Claws
+    for base in [3usize, 6] {
+        segments.push(BoneSegment { joint_a: base, joint_b: base + 1, radius: 0.02, color: c_claw });
+        segments.push(BoneSegment { joint_a: base + 1, joint_b: base + 2, radius: 0.018, color: c_claw });
+    }
+    // Legs
+    for leg in 0..6 {
+        let base = 9 + leg * 3;
+        segments.push(BoneSegment { joint_a: base, joint_b: base + 1, radius: 0.012, color: c_leg });
+        segments.push(BoneSegment { joint_a: base + 1, joint_b: base + 2, radius: 0.008, color: c_leg });
+    }
+
+    build_creature_model("Crab", &joint_names, &parent_indices, &positions, &segments, scale)
+}
+
+/// Generate a procedural bird model.
+pub fn generate_bird(height: f32) -> ImportedModel {
+    let scale = height / 0.4;
+    let c_body = [140, 160, 180, 255u8];
+    let c_wing = [120, 140, 170, 255u8];
+    let c_leg = [200, 180, 100, 255u8];
+    let c_beak = [220, 180, 50, 255u8];
+
+    let joint_names: Vec<String> = vec![
+        "Body", "Neck", "Head", "Beak", "Tail",
+        "LWing_Base", "LWing_Mid", "LWing_Tip",
+        "RWing_Base", "RWing_Mid", "RWing_Tip",
+        "LLeg_Hip", "LLeg_Knee", "LLeg_Foot",
+        "RLeg_Hip", "RLeg_Knee", "RLeg_Foot",
+    ].iter().map(|s| s.to_string()).collect();
+
+    let parent_indices = vec![
+        -1, 0, 1, 2, 0,        // body chain + tail
+        0, 5, 6,                // left wing
+        0, 8, 9,                // right wing
+        0, 11, 12,              // left leg
+        0, 14, 15,              // right leg
+    ];
+
+    let positions: Vec<Vec3> = vec![
+        Vec3::new(0.0, 0.2, 0.0),      // body
+        Vec3::new(0.0, 0.26, 0.08),    // neck
+        Vec3::new(0.0, 0.32, 0.12),    // head
+        Vec3::new(0.0, 0.31, 0.18),    // beak
+        Vec3::new(0.0, 0.18, -0.12),   // tail
+        // Left wing
+        Vec3::new(0.06, 0.22, 0.0),
+        Vec3::new(0.22, 0.24, -0.02),
+        Vec3::new(0.35, 0.22, -0.04),
+        // Right wing
+        Vec3::new(-0.06, 0.22, 0.0),
+        Vec3::new(-0.22, 0.24, -0.02),
+        Vec3::new(-0.35, 0.22, -0.04),
+        // Left leg
+        Vec3::new(0.04, 0.15, -0.02),
+        Vec3::new(0.04, 0.06, 0.02),
+        Vec3::new(0.04, 0.0, 0.04),
+        // Right leg
+        Vec3::new(-0.04, 0.15, -0.02),
+        Vec3::new(-0.04, 0.06, 0.02),
+        Vec3::new(-0.04, 0.0, 0.04),
+    ].iter().map(|p| *p * scale).collect();
+
+    let segments = vec![
+        BoneSegment { joint_a: 0, joint_b: 1, radius: 0.04, color: c_body },
+        BoneSegment { joint_a: 1, joint_b: 2, radius: 0.025, color: c_body },
+        BoneSegment { joint_a: 2, joint_b: 3, radius: 0.015, color: c_beak },
+        BoneSegment { joint_a: 0, joint_b: 4, radius: 0.025, color: c_body },
+        // Wings
+        BoneSegment { joint_a: 5, joint_b: 6, radius: 0.015, color: c_wing },
+        BoneSegment { joint_a: 6, joint_b: 7, radius: 0.01, color: c_wing },
+        BoneSegment { joint_a: 8, joint_b: 9, radius: 0.015, color: c_wing },
+        BoneSegment { joint_a: 9, joint_b: 10, radius: 0.01, color: c_wing },
+        // Legs
+        BoneSegment { joint_a: 11, joint_b: 12, radius: 0.01, color: c_leg },
+        BoneSegment { joint_a: 12, joint_b: 13, radius: 0.008, color: c_leg },
+        BoneSegment { joint_a: 14, joint_b: 15, radius: 0.01, color: c_leg },
+        BoneSegment { joint_a: 15, joint_b: 16, radius: 0.008, color: c_leg },
+    ];
+
+    build_creature_model("Bird", &joint_names, &parent_indices, &positions, &segments, scale)
+}
+
+/// Generate a procedural snake model (segmented body).
+pub fn generate_snake(height: f32) -> ImportedModel {
+    let scale = height / 0.5;
+    let c_body = [60, 100, 50, 255u8];
+    let c_head = [80, 120, 60, 255u8];
+
+    let num_segments = 16;
+    let mut joint_names = Vec::new();
+    let mut parent_indices = Vec::new();
+    let mut positions = Vec::new();
+
+    for i in 0..num_segments {
+        joint_names.push(if i == 0 { "Head".to_string() } else { format!("Seg_{}", i) });
+        parent_indices.push(if i == 0 { -1 } else { (i - 1) as i32 });
+        let z = -(i as f32) * 0.035;
+        let y = if i == 0 { 0.04 } else { 0.02 + (i as f32 * 0.3).sin() * 0.005 };
+        positions.push(Vec3::new(0.0, y, z) * scale);
+    }
+
+    let mut segments = Vec::new();
+    for i in 0..num_segments - 1 {
+        let radius = if i == 0 { 0.025 } else { 0.02 - (i as f32 * 0.001).min(0.01) };
+        let color = if i == 0 { c_head } else { c_body };
+        segments.push(BoneSegment { joint_a: i, joint_b: i + 1, radius, color });
+    }
+
+    build_creature_model("Snake", &joint_names, &parent_indices, &positions, &segments, scale)
+}
+
+/// Generate a procedural quadruped (dog/horse-like).
+pub fn generate_quadruped(height: f32) -> ImportedModel {
+    let scale = height / 0.6;
+    let c_body = [160, 130, 90, 255u8];
+    let c_leg = [140, 115, 80, 255u8];
+    let c_head = [170, 140, 100, 255u8];
+
+    let joint_names: Vec<String> = vec![
+        "Hips", "Spine", "Chest", "Neck", "Head", "Jaw", "Tail_1", "Tail_2",
+        "LF_Hip", "LF_Knee", "LF_Foot",
+        "RF_Hip", "RF_Knee", "RF_Foot",
+        "LB_Hip", "LB_Knee", "LB_Foot",
+        "RB_Hip", "RB_Knee", "RB_Foot",
+    ].iter().map(|s| s.to_string()).collect();
+
+    let parent_indices = vec![
+        -1, 0, 1, 2, 3, 4, 0, 6,   // spine + tail
+        2, 8, 9,                     // left front
+        2, 11, 12,                   // right front
+        0, 14, 15,                   // left back
+        0, 17, 18,                   // right back
+    ];
+
+    let positions: Vec<Vec3> = vec![
+        Vec3::new(0.0, 0.35, -0.15),    // hips
+        Vec3::new(0.0, 0.38, 0.0),      // spine
+        Vec3::new(0.0, 0.40, 0.12),     // chest
+        Vec3::new(0.0, 0.45, 0.22),     // neck
+        Vec3::new(0.0, 0.48, 0.30),     // head
+        Vec3::new(0.0, 0.44, 0.36),     // jaw
+        Vec3::new(0.0, 0.32, -0.22),    // tail base
+        Vec3::new(0.0, 0.28, -0.32),    // tail end
+        // Front left
+        Vec3::new(0.06, 0.35, 0.12),
+        Vec3::new(0.06, 0.18, 0.12),
+        Vec3::new(0.06, 0.0, 0.14),
+        // Front right
+        Vec3::new(-0.06, 0.35, 0.12),
+        Vec3::new(-0.06, 0.18, 0.12),
+        Vec3::new(-0.06, 0.0, 0.14),
+        // Back left
+        Vec3::new(0.06, 0.30, -0.15),
+        Vec3::new(0.06, 0.15, -0.12),
+        Vec3::new(0.06, 0.0, -0.10),
+        // Back right
+        Vec3::new(-0.06, 0.30, -0.15),
+        Vec3::new(-0.06, 0.15, -0.12),
+        Vec3::new(-0.06, 0.0, -0.10),
+    ].iter().map(|p| *p * scale).collect();
+
+    let segments = vec![
+        BoneSegment { joint_a: 0, joint_b: 1, radius: 0.05, color: c_body },
+        BoneSegment { joint_a: 1, joint_b: 2, radius: 0.05, color: c_body },
+        BoneSegment { joint_a: 2, joint_b: 3, radius: 0.035, color: c_body },
+        BoneSegment { joint_a: 3, joint_b: 4, radius: 0.035, color: c_head },
+        BoneSegment { joint_a: 4, joint_b: 5, radius: 0.025, color: c_head },
+        BoneSegment { joint_a: 0, joint_b: 6, radius: 0.02, color: c_body },
+        BoneSegment { joint_a: 6, joint_b: 7, radius: 0.012, color: c_body },
+        // Front legs
+        BoneSegment { joint_a: 8, joint_b: 9, radius: 0.02, color: c_leg },
+        BoneSegment { joint_a: 9, joint_b: 10, radius: 0.015, color: c_leg },
+        BoneSegment { joint_a: 11, joint_b: 12, radius: 0.02, color: c_leg },
+        BoneSegment { joint_a: 12, joint_b: 13, radius: 0.015, color: c_leg },
+        // Back legs
+        BoneSegment { joint_a: 14, joint_b: 15, radius: 0.025, color: c_leg },
+        BoneSegment { joint_a: 15, joint_b: 16, radius: 0.018, color: c_leg },
+        BoneSegment { joint_a: 17, joint_b: 18, radius: 0.025, color: c_leg },
+        BoneSegment { joint_a: 18, joint_b: 19, radius: 0.018, color: c_leg },
+    ];
+
+    build_creature_model("Quadruped", &joint_names, &parent_indices, &positions, &segments, scale)
+}
+
+/// Internal helper to build a creature model from joint + segment definitions.
+fn build_creature_model(
+    name: &str,
+    joint_names: &[String],
+    parent_indices: &[i32],
+    positions: &[Vec3],
+    segments: &[BoneSegment],
+    scale: f32,
+) -> ImportedModel {
+    let mut all_vertices = Vec::new();
+    let mut all_normals = Vec::new();
+    let mut all_texcoords = Vec::new();
+    let mut all_indices = Vec::new();
+    let mut all_bone_indices = Vec::new();
+    let mut all_bone_weights = Vec::new();
+
+    let tex_size = 32u32;
+    let mut texture_pixels = vec![128u8; (tex_size * tex_size * 4) as usize];
+
+    let atlas_cols = 4u32;
+    let atlas_rows = ((segments.len() as u32 + atlas_cols - 1) / atlas_cols).max(1);
+    let cell_w = tex_size / atlas_cols;
+    let cell_h = tex_size / atlas_rows;
+
+    for (seg_idx, seg) in segments.iter().enumerate() {
+        let col = seg_idx as u32 % atlas_cols;
+        let row = seg_idx as u32 / atlas_cols;
+
+        for py in 0..cell_h {
+            for px in 0..cell_w {
+                let x = col * cell_w + px;
+                let y = row * cell_h + py;
+                let offset = ((y * tex_size + x) * 4) as usize;
+                if offset + 3 < texture_pixels.len() {
+                    texture_pixels[offset] = seg.color[0];
+                    texture_pixels[offset + 1] = seg.color[1];
+                    texture_pixels[offset + 2] = seg.color[2];
+                    texture_pixels[offset + 3] = seg.color[3];
+                }
+            }
+        }
+
+        let uv_cx = (col as f32 + 0.5) / atlas_cols as f32;
+        let uv_cy = (row as f32 + 0.5) / atlas_rows as f32;
+
+        let pos_a = positions[seg.joint_a];
+        let pos_b = if seg.joint_a == seg.joint_b {
+            pos_a + Vec3::new(0.0, 0.0, seg.radius * scale * 0.5)
+        } else {
+            positions[seg.joint_b]
+        };
+        let radius = seg.radius * scale;
+        let base_vertex = all_vertices.len() as u32;
+
+        generate_capsule(
+            pos_a, pos_b, radius,
+            6, 3,
+            uv_cx, uv_cy,
+            seg.joint_a as u32, seg.joint_b as u32,
+            &mut all_vertices, &mut all_normals, &mut all_texcoords,
+            &mut all_indices, &mut all_bone_indices, &mut all_bone_weights,
+            base_vertex,
+        );
+    }
+
+    let mesh = ImportedMesh {
+        vertices: all_vertices,
+        normals: all_normals,
+        texcoords: all_texcoords,
+        indices: all_indices,
+        bone_indices: all_bone_indices,
+        bone_weights: all_bone_weights,
+        texture: Some(TextureData {
+            width: tex_size,
+            height: tex_size,
+            pixels: texture_pixels,
+        }),
+    };
+
+    let inverse_bind_matrices: Vec<Mat4> = positions.iter()
+        .map(|p| Mat4::from_translation(-*p))
+        .collect();
+
+    let skin = ImportedSkin {
+        inverse_bind_matrices,
+        joint_names: joint_names.to_vec(),
+        joint_indices: (0..joint_names.len()).collect(),
+    };
+
+    let rest_transforms: Vec<Mat4> = positions.iter()
+        .map(|p| Mat4::from_translation(*p))
+        .collect();
+
+    ImportedModel {
+        name: name.to_string(),
+        meshes: vec![mesh],
+        skin: Some(skin),
+        joint_names: joint_names.to_vec(),
+        parent_indices: parent_indices.to_vec(),
+        animation_frames: Some(AnimationData {
+            frames: vec![rest_transforms],
+            framerate: 30.0,
+        }),
+    }
+}
+
+/// Generate a creature by type name.
+pub fn generate_creature(creature_type: &str, height: f32) -> ImportedModel {
+    match creature_type.to_lowercase().as_str() {
+        "spider" | "araignée" | "araignee" => generate_spider(height),
+        "crab" | "crabe" => generate_crab(height),
+        "bird" | "oiseau" => generate_bird(height),
+        "snake" | "serpent" => generate_snake(height),
+        "quadruped" | "quadrupede" | "dog" | "chien" | "horse" | "cheval" =>
+            generate_quadruped(height),
+        _ => generate_quadruped(height), // default
+    }
+}

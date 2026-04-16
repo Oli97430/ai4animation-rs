@@ -24,3 +24,6 @@ pub mod graph_editor;
 pub mod ragdoll_panel;
 pub mod deep_phase_panel;
 pub mod anim_recorder_panel;
+pub mod material_editor;
+pub mod cloth_panel;
+pub mod ik_panel;

@@ -278,6 +278,43 @@ pub enum AiCommand {
     /// Resume a paused recording.
     ResumeRecording,
 
+    // ── Cloth / Soft-body ─────────────────────────────
+    /// Create a cloth grid.
+    CreateCloth {
+        #[serde(default = "default_cloth_w")]
+        width: usize,
+        #[serde(default = "default_cloth_h")]
+        height: usize,
+        #[serde(default = "default_cloth_size")]
+        size: f32,
+    },
+
+    /// Destroy the cloth simulation.
+    DestroyCloth,
+
+    /// Toggle cloth simulation on/off.
+    ToggleCloth { enabled: bool },
+
+    // ── Material ────────────────────────────────────
+    /// Set material properties on the active model.
+    SetMaterial {
+        #[serde(default)]
+        color: Option<[u8; 3]>,
+        #[serde(default)]
+        metallic: Option<f32>,
+        #[serde(default)]
+        roughness: Option<f32>,
+    },
+
+    // ── Procedural creatures ────────────────────────
+    /// Create a procedural creature (spider, crab, bird, etc.).
+    CreateCreature {
+        /// Creature type: "spider", "crab", "bird", "snake", "quadruped"
+        creature_type: String,
+        #[serde(default = "default_height")]
+        height: f32,
+    },
+
     /// Create a node in the blend tree.
     CreateBlendTreeNode {
         /// Node type: "clip", "blend1d" / "1d", "blend2d" / "2d", "lerp"
@@ -292,6 +329,9 @@ pub enum AiCommand {
     },
 }
 
+fn default_cloth_w() -> usize { 12 }
+fn default_cloth_h() -> usize { 12 }
+fn default_cloth_size() -> f32 { 1.5 }
 fn default_name() -> String { "Humanoide".into() }
 fn default_height() -> f32 { 1.75 }
 fn default_duration() -> f32 { 3.0 }

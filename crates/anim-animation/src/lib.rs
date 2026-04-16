@@ -25,6 +25,7 @@ pub mod blend_tree;
 pub mod ragdoll;
 pub mod deep_phase;
 pub mod anim_recorder;
+pub mod cloth;
 
 pub use hierarchy::Hierarchy;
 pub use motion::Motion;
@@ -63,3 +64,4 @@ pub use deep_phase::{
     extract_deep_phase, transition_score, find_best_transition,
 };
 pub use anim_recorder::{AnimRecorder, RecorderConfig, RecordedClip, RecordingState, clip_to_motion_data};
+pub use cloth::{ClothSim, ClothConfig, Particle, DistanceConstraint};

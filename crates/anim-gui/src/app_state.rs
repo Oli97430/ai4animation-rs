@@ -327,6 +327,16 @@ pub struct AppState {
     // Animation recorder
     pub show_anim_recorder: bool,
 
+    // Cloth / soft-body
+    pub cloth_sim: Option<anim_animation::ClothSim>,
+    pub show_cloth: bool,
+
+    // Material editor
+    pub show_material_editor: bool,
+
+    // IK panel
+    pub show_ik_panel: bool,
+
     // Pending project load (set by menu, processed by main loop with AssetManager access)
     pub pending_project_load: Option<std::path::PathBuf>,
     // Pending frame export (set by AI command, processed by main loop with render access)
@@ -503,6 +513,10 @@ impl AppState {
             deep_phase: None,
             show_deep_phase: false,
             show_anim_recorder: false,
+            cloth_sim: None,
+            show_cloth: false,
+            show_material_editor: false,
+            show_ik_panel: false,
             pending_project_load: None,
             pending_export_frame: None,
             pending_recent_import: None,

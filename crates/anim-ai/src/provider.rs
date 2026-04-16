@@ -185,7 +185,7 @@ IK:
 
 Panneaux:
 - {"action": "show_panel", "panel": "console"} / {"action": "hide_panel", "panel": "console"}
-  Noms: console, profiler, dope_sheet, motion_editor, recorder, batch, asset_browser, render_settings, ai_chat, ragdoll, graph_editor, blend_tree, anim_recorder, deep_phase
+  Noms: console, profiler, dope_sheet, motion_editor, recorder, batch, asset_browser, render_settings, ai_chat, ragdoll, graph_editor, blend_tree, anim_recorder, deep_phase, material, cloth, ik
 
 Console:
 - {"action": "log", "text": "message"}
@@ -247,6 +247,18 @@ Enregistrement d'animation:
 - {"action": "stop_recording"} — Arrêter et sauvegarder le clip enregistré comme Motion
 - {"action": "pause_recording"} — Mettre en pause l'enregistrement
 - {"action": "resume_recording"} — Reprendre l'enregistrement
+
+Tissu / Soft-body:
+- {"action": "create_cloth", "width": 12, "height": 12, "size": 1.5} — Créer une grille de tissu
+- {"action": "destroy_cloth"} — Supprimer le tissu
+- {"action": "toggle_cloth", "enabled": true} — Activer/désactiver la simulation
+
+Matériaux:
+- {"action": "set_material", "color": [255, 200, 100], "metallic": 0.5, "roughness": 0.3} — Modifier le matériau du modèle actif
+
+Créatures procédurales:
+- {"action": "create_creature", "creature_type": "spider", "height": 0.3} — Créer une créature procédurale
+  Types: "spider"/"araignée", "crab"/"crabe", "bird"/"oiseau", "snake"/"serpent", "quadruped"/"chien"/"cheval"
 
 Blend Tree:
 - {"action": "create_blend_tree_node", "node_type": "clip", "name": "Walk", "model_index": 0} — Créer un noeud clip

@@ -461,6 +461,9 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
             ui.checkbox(&mut state.show_ragdoll, RichText::new("🦴 Ragdoll Physics").size(11.5));
             ui.checkbox(&mut state.show_deep_phase, RichText::new("🌊 DeepPhase").size(11.5));
             ui.checkbox(&mut state.show_anim_recorder, RichText::new("🎬 Enregistreur").size(11.5));
+            ui.checkbox(&mut state.show_cloth, RichText::new("🧵 Tissu / Soft-body").size(11.5));
+            ui.checkbox(&mut state.show_material_editor, RichText::new("🎨 Matériaux").size(11.5));
+            ui.checkbox(&mut state.show_ik_panel, RichText::new("🎯 IK avancé").size(11.5));
         });
 
         // ── Animation ───────────────────────────────────────
