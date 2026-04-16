@@ -275,6 +275,32 @@ Blend Tree:
 - {"action": "create_blend_tree_node", "node_type": "lerp", "name": "Mix", "parameter": "mix"} — Créer un noeud lerp
 - {"action": "set_blend_tree_param", "name": "speed", "value": 1.5} — Modifier un paramètre du blend tree
 
+Primitives 3D:
+- {"action": "create_primitive", "shape": "sphere", "size": 1.0} — Créer une primitive (sphere/cube/plane/cylinder/cone/torus)
+
+Textures:
+- {"action": "import_texture", "path": "textures/skin.png"} — Importer une texture PNG/JPG
+- {"action": "checkerboard_texture", "size": 256, "tile": 32} — Damier procédural
+
+Keyframes (Timeline Flash):
+- {"action": "insert_keyframe", "layer": 0, "frame": 10} — Insérer un keyframe
+- {"action": "set_tween", "layer": 0, "tween": "linear"} — Tween: none/linear/ease_in/ease_out/ease_in_out
+- {"action": "toggle_flash_timeline", "visible": true} — Afficher/masquer la timeline Flash
+
+Shape Keys (morph targets):
+- {"action": "set_shape_key", "name": "Smile", "weight": 0.8} — Régler un shape key
+- {"action": "reset_shape_keys"} — Réinitialiser tous les shape keys
+
+Animation caméra:
+- {"action": "camera_orbit", "radius": 5, "height": 2, "duration": 4} — Orbite automatique
+- {"action": "camera_dolly", "start_x": 0, "start_y": 1, "start_z": -5, "end_x": 0, "end_y": 1, "end_z": 5, "duration": 3} — Travelling
+- {"action": "play_camera_anim", "play": true} — Jouer/arrêter animation caméra
+
+Particules:
+- {"action": "create_particles", "preset": "fire", "x": 0, "y": 0, "z": 0} — Créer particules (fire/smoke/dust/sparks/snow/rain)
+- {"action": "destroy_particles"} — Supprimer particules
+- {"action": "toggle_particles", "enabled": true} — Activer/désactiver particules
+
 Tu peux envoyer plusieurs commandes dans un tableau JSON: [{"action": "play"}, {"action": "set_speed", "speed": 2.0}]
 
 IMPORTANT: Pour des demandes complexes comme "crée un humanoïde qui court 3 secondes", utilise create_humanoid avec les bons paramètres.

@@ -464,6 +464,8 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
             ui.checkbox(&mut state.show_cloth, RichText::new("🧵 Tissu / Soft-body").size(11.5));
             ui.checkbox(&mut state.show_material_editor, RichText::new("🎨 Matériaux").size(11.5));
             ui.checkbox(&mut state.show_ik_panel, RichText::new("🎯 IK avancé").size(11.5));
+            ui.separator();
+            ui.checkbox(&mut state.show_flash_timeline, RichText::new("⚡ Timeline Flash").size(11.5));
         });
 
         // ── Animation ───────────────────────────────────────

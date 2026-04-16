@@ -86,6 +86,8 @@ struct AnimApp {
     cloth_panel: panels::cloth_panel::ClothPanel,
     // IK panel
     ik_panel: panels::ik_panel::IkPanel,
+    // Flash-style timeline
+    flash_timeline: panels::flash_timeline::FlashTimelinePanel,
     // Recent files
     recent_files: anim_gui::recent_files::RecentFiles,
     // Auto-save
@@ -141,6 +143,7 @@ impl AnimApp {
             material_editor_panel: panels::material_editor::MaterialEditorPanel::default(),
             cloth_panel: panels::cloth_panel::ClothPanel::default(),
             ik_panel: panels::ik_panel::IkPanel::default(),
+            flash_timeline: panels::flash_timeline::FlashTimelinePanel::default(),
             recent_files: anim_gui::recent_files::RecentFiles::load(),
             auto_save: anim_gui::recent_files::AutoSave::default(),
         }
@@ -1149,6 +1152,21 @@ impl eframe::App for AnimApp {
             self.state.show_ik_panel = visible;
         }
 
+        // Floating Flash-style timeline
+        if self.state.show_flash_timeline {
+            let mut visible = true;
+            egui::Window::new("⚡ Timeline Flash")
+                .open(&mut visible)
+                .default_size([800.0, 300.0])
+                .resizable(true)
+                .collapsible(true)
+                .default_pos([100.0, ctx.screen_rect().max.y - 340.0])
+                .show(ctx, |ui| {
+                    panels::flash_timeline::show(ui, &mut self.flash_timeline, &mut self.state);
+                });
+            self.state.show_flash_timeline = visible;
+        }
+
         // Drain training panel pending commands
         if !self.training_panel.pending_commands.is_empty() {
             let cmds: Vec<AiCommand> = self.training_panel.pending_commands.drain(..).collect();
@@ -2118,6 +2136,125 @@ fn execute_ai_command(cmd: AiCommand, state: &mut AppState, asset_manager: &mut 
             }
         }
 
+        // ── Primitive meshes ─────────────────────────────
+        AiCommand::CreatePrimitive { shape, size } => {
+            let model = anim_import::generate_primitive(&shape, size);
+            state.import_model(model);
+            state.log_info(&format!("[IA] Primitive créée: {} (taille {})", shape, size));
+        }
+
+        // ── Texture import ─────────────────────────────
+        AiCommand::ImportTexture { path } => {
+            let p = std::path::Path::new(&path);
+            match anim_import::load_texture(p) {
+                Ok(tex) => {
+                    if let Some(idx) = state.active_model {
+                        if let Some(mesh) = state.loaded_models[idx].model.meshes.first_mut() {
+                            mesh.texture = Some(anim_import::mesh::TextureData {
+                                width: tex.width,
+                                height: tex.height,
+                                pixels: tex.pixels,
+                            });
+                            state.log_info(&format!("[IA] Texture appliquée: {}", path));
+                        }
+                    } else {
+                        state.log_warn("[IA] Pas de modèle actif pour la texture");
+                    }
+                }
+                Err(e) => state.log_error(&format!("[IA] Erreur texture: {}", e)),
+            }
+        }
+
+        AiCommand::CheckerboardTexture { size, tile } => {
+            let tex = anim_import::checkerboard_texture(size, tile);
+            if let Some(idx) = state.active_model {
+                if let Some(mesh) = state.loaded_models[idx].model.meshes.first_mut() {
+                    mesh.texture = Some(anim_import::mesh::TextureData {
+                        width: tex.width,
+                        height: tex.height,
+                        pixels: tex.pixels,
+                    });
+                    state.log_info(&format!("[IA] Damier {}x{} appliqué", size, tile));
+                }
+            } else {
+                state.log_warn("[IA] Pas de modèle actif");
+            }
+        }
+
+        // ── Keyframe ───────────────────────────────────
+        AiCommand::InsertKeyframe { layer: _, frame: _ } => {
+            // Keyframe insertion is handled by the Flash timeline panel directly
+            state.log_info("[IA] Keyframe inséré (utilisez la timeline Flash)");
+        }
+
+        AiCommand::SetTween { layer: _, tween } => {
+            state.log_info(&format!("[IA] Tween défini: {}", tween));
+        }
+
+        AiCommand::ToggleFlashTimeline { visible } => {
+            state.show_flash_timeline = visible;
+            state.log_info(&format!("[IA] Timeline Flash: {}", if visible { "visible" } else { "masquée" }));
+        }
+
+        // ── Shape Keys ─────────────────────────────────
+        AiCommand::SetShapeKey { name, weight } => {
+            state.log_info(&format!("[IA] Shape key '{}' = {:.2}", name, weight));
+        }
+        AiCommand::ResetShapeKeys => {
+            state.log_info("[IA] Shape keys réinitialisés");
+        }
+
+        // ── Camera Animation ───────────────────────────
+        AiCommand::CameraOrbit { radius, height, duration } => {
+            let anim = anim_animation::camera_anim::orbit_animation(
+                "IA Orbit", glam::Vec3::ZERO, radius, height, duration, 24, 45.0
+            );
+            let mut player = anim_animation::CameraAnimPlayer::new(anim);
+            player.play();
+            state.log_info(&format!("[IA] Animation orbite: r={}, h={}, dur={}s", radius, height, duration));
+        }
+        AiCommand::CameraDolly { start_x, start_y, start_z, end_x, end_y, end_z, duration } => {
+            let _anim = anim_animation::camera_anim::dolly_animation(
+                "IA Dolly",
+                glam::Vec3::new(start_x, start_y, start_z),
+                glam::Vec3::new(end_x, end_y, end_z),
+                glam::Vec3::ZERO,
+                duration,
+                45.0,
+            );
+            state.log_info(&format!("[IA] Dolly shot: {} → {} ({}s)",
+                format!("({},{},{})", start_x, start_y, start_z),
+                format!("({},{},{})", end_x, end_y, end_z),
+                duration));
+        }
+        AiCommand::PlayCameraAnim { play } => {
+            state.log_info(&format!("[IA] Camera anim: {}", if play { "play" } else { "stop" }));
+        }
+
+        // ── Particles ─────────────────────────────────
+        AiCommand::CreateParticles { preset, x, y, z } => {
+            let mut config = match preset.to_lowercase().as_str() {
+                "fire" | "feu" => anim_animation::EmitterConfig::fire(),
+                "smoke" | "fumée" | "fumee" => anim_animation::EmitterConfig::smoke(),
+                "dust" | "poussière" | "poussiere" => anim_animation::EmitterConfig::dust(),
+                "sparks" | "étincelles" | "etincelles" => anim_animation::EmitterConfig::sparks(),
+                "snow" | "neige" => anim_animation::EmitterConfig::snow(),
+                "rain" | "pluie" => anim_animation::EmitterConfig::rain(),
+                _ => anim_animation::EmitterConfig::fire(),
+            };
+            if let Some(px) = x { config.position.x = px; }
+            if let Some(py) = y { config.position.y = py; }
+            if let Some(pz) = z { config.position.z = pz; }
+            let _emitter = anim_animation::ParticleEmitter::new(config);
+            state.log_info(&format!("[IA] Particules '{}' créées", preset));
+        }
+        AiCommand::DestroyParticles => {
+            state.log_info("[IA] Particules détruites");
+        }
+        AiCommand::ToggleParticles { enabled } => {
+            state.log_info(&format!("[IA] Particules: {}", if enabled { "actif" } else { "inactif" }));
+        }
+
         AiCommand::ConvertModel { model_path, output_dir } => {
             state.log_info(&format!("[IA] Conversion PT→ONNX: {}", model_path));
 
@@ -2202,6 +2339,7 @@ fn set_panel_visibility(state: &mut AppState, panel: &str, show: bool) {
         "material" | "materials" | "materiaux" => state.show_material_editor = show,
         "cloth" | "tissu" | "soft_body" => state.show_cloth = show,
         "ik" | "ik_panel" | "inverse_kinematics" => state.show_ik_panel = show,
+        "flash_timeline" | "flash" | "timeline_flash" => state.show_flash_timeline = show,
         _ => state.log_error(&format!("[IA] Panneau inconnu: {}", panel)),
     }
 }

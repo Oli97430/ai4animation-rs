@@ -27,3 +27,4 @@ pub mod anim_recorder_panel;
 pub mod material_editor;
 pub mod cloth_panel;
 pub mod ik_panel;
+pub mod flash_timeline;

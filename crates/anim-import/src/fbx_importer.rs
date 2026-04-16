@@ -617,6 +617,10 @@ impl FbxBuilder {
                 bone_indices: self.bone_indices_per_vert,
                 bone_weights: self.bone_weights_per_vert,
                 texture: None,
+                normal_map: None,
+                metallic_roughness_map: None,
+                emission_map: None,
+                material_index: 0,
             }]
         } else {
             Vec::new()

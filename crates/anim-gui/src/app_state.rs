@@ -337,6 +337,9 @@ pub struct AppState {
     // IK panel
     pub show_ik_panel: bool,
 
+    // Flash-style timeline
+    pub show_flash_timeline: bool,
+
     // Pending project load (set by menu, processed by main loop with AssetManager access)
     pub pending_project_load: Option<std::path::PathBuf>,
     // Pending frame export (set by AI command, processed by main loop with render access)
@@ -517,6 +520,7 @@ impl AppState {
             show_cloth: false,
             show_material_editor: false,
             show_ik_panel: false,
+            show_flash_timeline: false,
             pending_project_load: None,
             pending_export_frame: None,
             pending_recent_import: None,

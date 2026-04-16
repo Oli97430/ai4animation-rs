@@ -587,6 +587,10 @@ pub fn import_usd(path: &Path) -> Result<ImportedModel, Box<dyn std::error::Erro
             bone_indices: Vec::new(),
             bone_weights: Vec::new(),
             texture: None,
+            normal_map: None,
+            metallic_roughness_map: None,
+            emission_map: None,
+            material_index: 0,
         }]
     } else {
         Vec::new()

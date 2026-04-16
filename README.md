@@ -3,8 +3,8 @@
   <img src="https://img.shields.io/badge/wgpu-22-blue?logo=webgpu" />
   <img src="https://img.shields.io/badge/egui-0.29-green" />
   <img src="https://img.shields.io/badge/ONNX-Runtime-purple?logo=onnx" />
-  <img src="https://img.shields.io/badge/lines-34k+-brightgreen" />
-  <img src="https://img.shields.io/badge/tests-66-success" />
+  <img src="https://img.shields.io/badge/lines-38k+-brightgreen" />
+  <img src="https://img.shields.io/badge/tests-148-success" />
   <img src="https://img.shields.io/badge/license-MIT-lightgrey" />
 </p>
 
@@ -136,7 +136,7 @@ Synthèse de mouvement par réseau de neurones :
 
 ### Assistant IA intégré
 
-Un chat IA directement dans l'éditeur, capable de piloter **50+ commandes** :
+Un chat IA directement dans l'éditeur, capable de piloter **70+ commandes** :
 
 ```
 "Crée un humanoïde de 1m80 avec une animation de course"
@@ -157,7 +157,7 @@ Commandes disponibles : import, export, playback, caméra, sélection, transform
 
 ### Interface professionnelle
 
-- **24 panneaux** — Hiérarchie, inspecteur, timeline, dope sheet, console, éditeur de mouvement, profiler, enregistreur vidéo, navigateur d'assets, raccourcis, chat IA, entraînement, motion matching, machine d'états, éditeur de pose, réglages de rendu, batch converter, tissu/soft-body, matériaux PBR, IK avancé, ragdoll, blend tree, enregistreur d'animation, DeepPhase...
+- **25 panneaux** — Hiérarchie, inspecteur, timeline, **timeline Flash** (style Macromedia), dope sheet, console, éditeur de mouvement, profiler, enregistreur vidéo, navigateur d'assets, raccourcis, chat IA, entraînement, motion matching, machine d'états, éditeur de pose, réglages de rendu, batch converter, tissu/soft-body, matériaux PBR, IK avancé, ragdoll, blend tree, enregistreur d'animation, DeepPhase...
 - **Thème sombre** — Style professionnel inspiré Blender/SketchUp
 - **Raccourcis configurables** — Éditeur visuel de keybindings
 - **Undo/Redo** — Historique de 100 actions
@@ -177,18 +177,19 @@ ai4animation-rs/
 │   ├── anim-core        # Scène, entités, temps, profiler, i18n
 │   ├── anim-import      # GLB, FBX, BVH, NPZ, procédural, presets
 │   ├── anim-animation   # Motion, blend, IK, contacts, locomotion,
-│   │                    # motion matching, state machine, retarget...
+│   │                    # motion matching, state machine, retarget,
+│   │                    # keyframes, shape keys, particles, camera anim...
 │   ├── anim-ik          # FABRIK, contraintes, pole targets
 │   ├── anim-render      # wgpu renderer, skinning, debug draw, capture
 │   ├── anim-gui         # egui panels, app state, thème, raccourcis
-│   ├── anim-ai          # Claude/GPT/Ollama, 50+ commandes structurées
+│   ├── anim-ai          # Claude/GPT/Ollama, 70+ commandes structurées
 │   └── anim-app         # Point d'entrée, boucle principale
 ├── samples/             # Fichiers exemples (BVH, FBX, NPZ)
 ├── docs/                # Didacticiel complet
 └── Cargo.toml           # Workspace avec 9 crates
 ```
 
-**151 fichiers Rust** | **~34 000 lignes de code** | **66 tests unitaires** | **28 fichiers exemples**
+**120 fichiers Rust** | **~38 000 lignes de code** | **148 tests unitaires** | **28 fichiers exemples**
 
 ---
 
@@ -244,8 +245,16 @@ Pour l'inférence ONNX, le runtime est téléchargé automatiquement au premier 
 - [x] Éditeur de matériaux PBR
 - [x] Créatures procédurales (5 types)
 - [x] Enregistrement d'animation
-- [x] Assistant IA : contrôle complet (50+ commandes)
+- [x] Assistant IA : contrôle complet (70+ commandes)
 - [x] Fichiers exemples + didacticiel
+- [x] Timeline Flash (style Macromedia) avec keyframes, tweens, layers
+- [x] Système de keyframes avec interpolation Flash (6 types de tween)
+- [x] Primitives 3D (sphère, cube, plan, cylindre, cône, tore)
+- [x] Import de textures (PNG/JPG) + textures procédurales
+- [x] Shape Keys / Morph Targets
+- [x] Textures PBR : normal map, metallic-roughness, emission
+- [x] Animation caméra (orbite, dolly, zoom) avec easing
+- [x] Système de particules (feu, fumée, poussière, étincelles, neige, pluie)
 - [ ] GPU-accelerated motion matching (compute shaders)
 - [ ] Plugin système pour extensions custom
 - [ ] Support Linux / macOS natif
@@ -262,9 +271,9 @@ Ce moteur Rust est le successeur de la version Python (`ai4animationpy`). Voici 
 
 | Métrique | Python | Rust | Ratio |
 |----------|--------|------|-------|
-| **Fichiers source** | 92 `.py` | 151 `.rs` | x1.6 |
-| **Lignes de code** | 15 885 | 33 787 | x2.1 |
-| **Tests unitaires** | 0 | 66 | — |
+| **Fichiers source** | 92 `.py` | 120 `.rs` | x1.3 |
+| **Lignes de code** | 15 885 | 38 010 | x2.4 |
+| **Tests unitaires** | 0 | 148 | — |
 | **Fichiers exemples** | 0 | 28 | — |
 
 ### Moteur de rendu
@@ -313,7 +322,7 @@ Ce moteur Rust est le successeur de la version Python (`ai4animationpy`). Voici 
 | **Architectures** | MLP, Autoencoder, Flow, Codebook | Via modeles ONNX pre-entraines |
 | **Inference ONNX** | ✅ onnxruntime-gpu | ✅ onnxruntime |
 | **Assistant IA chat** | — | ✅ (Ollama/OpenAI/Claude) |
-| **Commandes IA** | — | ✅ (50+ commandes JSON) |
+| **Commandes IA** | — | ✅ (70+ commandes JSON) |
 | **Controle total par IA** | — | ✅ |
 
 ### Distribution

@@ -15,6 +15,14 @@ pub struct ImportedMesh {
     pub bone_weights: Vec<[f32; 4]>,
     /// Texture image (RGBA pixels).
     pub texture: Option<TextureData>,
+    /// Normal map texture (RGB → tangent-space normals).
+    pub normal_map: Option<TextureData>,
+    /// Metallic-roughness map (G=roughness, B=metallic, like glTF).
+    pub metallic_roughness_map: Option<TextureData>,
+    /// Emission map (RGB).
+    pub emission_map: Option<TextureData>,
+    /// Material index for multi-material support.
+    pub material_index: u32,
 }
 
 #[derive(Clone)]

@@ -198,6 +198,10 @@ pub fn generate_humanoid(config: &HumanoidConfig) -> ImportedModel {
             height: tex_size,
             pixels: texture_pixels,
         }),
+        normal_map: None,
+        metallic_roughness_map: None,
+        emission_map: None,
+        material_index: 0,
     };
 
     // ── Build ImportedSkin ──────────────────────────────────────
@@ -1121,6 +1125,10 @@ fn build_creature_model(
             height: tex_size,
             pixels: texture_pixels,
         }),
+        normal_map: None,
+        metallic_roughness_map: None,
+        emission_map: None,
+        material_index: 0,
     };
 
     let inverse_bind_matrices: Vec<Mat4> = positions.iter()
@@ -1160,5 +1168,594 @@ pub fn generate_creature(creature_type: &str, height: f32) -> ImportedModel {
         "quadruped" | "quadrupede" | "dog" | "chien" | "horse" | "cheval" =>
             generate_quadruped(height),
         _ => generate_quadruped(height), // default
+    }
+}
+
+// ── 3D Mesh Primitives ──────────────────────────────────────────
+
+/// Internal helper to build an ImportedModel from raw mesh data with a single
+/// "Root" joint at the origin.
+fn build_primitive_model(
+    name: &str,
+    vertices: Vec<Vec3>,
+    normals: Vec<Vec3>,
+    texcoords: Vec<Vec2>,
+    indices: Vec<u32>,
+) -> ImportedModel {
+    let n = vertices.len();
+    ImportedModel {
+        name: name.to_string(),
+        meshes: vec![ImportedMesh {
+            vertices,
+            normals,
+            texcoords,
+            indices,
+            bone_indices: vec![[0, 0, 0, 0]; n],
+            bone_weights: vec![[1.0, 0.0, 0.0, 0.0]; n],
+            texture: None,
+            normal_map: None,
+            metallic_roughness_map: None,
+            emission_map: None,
+            material_index: 0,
+        }],
+        skin: Some(ImportedSkin {
+            inverse_bind_matrices: vec![Mat4::IDENTITY],
+            joint_names: vec!["Root".to_string()],
+            joint_indices: vec![0],
+        }),
+        joint_names: vec!["Root".to_string()],
+        parent_indices: vec![-1],
+        animation_frames: None,
+    }
+}
+
+/// Generate a UV sphere with the given radius, number of longitudinal segments,
+/// and number of latitudinal rings.
+pub fn generate_sphere(radius: f32, segments: u32, rings: u32) -> ImportedModel {
+    let segments = segments.max(3);
+    let rings = rings.max(2);
+
+    let mut vertices = Vec::new();
+    let mut normals = Vec::new();
+    let mut texcoords = Vec::new();
+    let mut indices = Vec::new();
+
+    // Generate vertices ring-by-ring from top pole to bottom pole.
+    for ring in 0..=rings {
+        let phi = std::f32::consts::PI * ring as f32 / rings as f32; // 0 at top, PI at bottom
+        let (sin_phi, cos_phi) = phi.sin_cos();
+
+        for seg in 0..=segments {
+            let theta = std::f32::consts::TAU * seg as f32 / segments as f32;
+            let (sin_theta, cos_theta) = theta.sin_cos();
+
+            let nx = sin_phi * cos_theta;
+            let ny = cos_phi;
+            let nz = sin_phi * sin_theta;
+            let normal = Vec3::new(nx, ny, nz);
+
+            vertices.push(normal * radius);
+            normals.push(normal);
+            texcoords.push(Vec2::new(
+                seg as f32 / segments as f32,
+                ring as f32 / rings as f32,
+            ));
+        }
+    }
+
+    // Triangulate: connect adjacent rings.
+    let stride = segments + 1;
+    for ring in 0..rings {
+        for seg in 0..segments {
+            let tl = ring * stride + seg;
+            let tr = ring * stride + seg + 1;
+            let bl = (ring + 1) * stride + seg;
+            let br = (ring + 1) * stride + seg + 1;
+
+            // Skip degenerate triangles at the poles.
+            if ring != 0 {
+                indices.push(tl);
+                indices.push(bl);
+                indices.push(tr);
+            }
+            if ring != rings - 1 {
+                indices.push(tr);
+                indices.push(bl);
+                indices.push(br);
+            }
+        }
+    }
+
+    build_primitive_model("Sphere", vertices, normals, texcoords, indices)
+}
+
+/// Generate an axis-aligned box (cube) with the given dimensions and per-face
+/// UV coordinates spanning 0..1 on each face.
+pub fn generate_cube(width: f32, height: f32, depth: f32) -> ImportedModel {
+    let hw = width * 0.5;
+    let hh = height * 0.5;
+    let hd = depth * 0.5;
+
+    // Each face has 4 unique vertices (so normals are flat-shaded).
+    let face_data: &[([f32; 3], [f32; 3])] = &[
+        // +Y (top)
+        ([-hw,  hh, -hd], [0.0, 1.0, 0.0]),
+        ([ hw,  hh, -hd], [0.0, 1.0, 0.0]),
+        ([ hw,  hh,  hd], [0.0, 1.0, 0.0]),
+        ([-hw,  hh,  hd], [0.0, 1.0, 0.0]),
+        // -Y (bottom)
+        ([-hw, -hh,  hd], [0.0, -1.0, 0.0]),
+        ([ hw, -hh,  hd], [0.0, -1.0, 0.0]),
+        ([ hw, -hh, -hd], [0.0, -1.0, 0.0]),
+        ([-hw, -hh, -hd], [0.0, -1.0, 0.0]),
+        // +Z (front)
+        ([-hw, -hh,  hd], [0.0, 0.0, 1.0]),
+        ([ hw, -hh,  hd], [0.0, 0.0, 1.0]),
+        ([ hw,  hh,  hd], [0.0, 0.0, 1.0]),
+        ([-hw,  hh,  hd], [0.0, 0.0, 1.0]),
+        // -Z (back)
+        ([ hw, -hh, -hd], [0.0, 0.0, -1.0]),
+        ([-hw, -hh, -hd], [0.0, 0.0, -1.0]),
+        ([-hw,  hh, -hd], [0.0, 0.0, -1.0]),
+        ([ hw,  hh, -hd], [0.0, 0.0, -1.0]),
+        // +X (right)
+        ([ hw, -hh,  hd], [1.0, 0.0, 0.0]),
+        ([ hw, -hh, -hd], [1.0, 0.0, 0.0]),
+        ([ hw,  hh, -hd], [1.0, 0.0, 0.0]),
+        ([ hw,  hh,  hd], [1.0, 0.0, 0.0]),
+        // -X (left)
+        ([-hw, -hh, -hd], [-1.0, 0.0, 0.0]),
+        ([-hw, -hh,  hd], [-1.0, 0.0, 0.0]),
+        ([-hw,  hh,  hd], [-1.0, 0.0, 0.0]),
+        ([-hw,  hh, -hd], [-1.0, 0.0, 0.0]),
+    ];
+
+    let face_uvs = [
+        Vec2::new(0.0, 0.0),
+        Vec2::new(1.0, 0.0),
+        Vec2::new(1.0, 1.0),
+        Vec2::new(0.0, 1.0),
+    ];
+
+    let mut vertices = Vec::with_capacity(24);
+    let mut normals = Vec::with_capacity(24);
+    let mut texcoords = Vec::with_capacity(24);
+    let mut indices = Vec::with_capacity(36);
+
+    for (i, &(pos, norm)) in face_data.iter().enumerate() {
+        vertices.push(Vec3::from(pos));
+        normals.push(Vec3::from(norm));
+        texcoords.push(face_uvs[i % 4]);
+    }
+
+    for face in 0..6u32 {
+        let base = face * 4;
+        indices.push(base);
+        indices.push(base + 1);
+        indices.push(base + 2);
+        indices.push(base);
+        indices.push(base + 2);
+        indices.push(base + 3);
+    }
+
+    build_primitive_model("Cube", vertices, normals, texcoords, indices)
+}
+
+/// Generate a flat grid plane on the XZ plane centered at the origin, with the
+/// given width (along X), depth (along Z), and number of subdivisions per side.
+pub fn generate_plane(width: f32, depth: f32, subdivisions: u32) -> ImportedModel {
+    let subdivisions = subdivisions.max(1);
+    let cols = subdivisions;
+    let rows = subdivisions;
+
+    let mut vertices = Vec::new();
+    let mut normals = Vec::new();
+    let mut texcoords = Vec::new();
+    let mut indices = Vec::new();
+
+    for row in 0..=rows {
+        for col in 0..=cols {
+            let u = col as f32 / cols as f32;
+            let v = row as f32 / rows as f32;
+            let x = (u - 0.5) * width;
+            let z = (v - 0.5) * depth;
+
+            vertices.push(Vec3::new(x, 0.0, z));
+            normals.push(Vec3::Y); // all face upward
+            texcoords.push(Vec2::new(u, v));
+        }
+    }
+
+    let stride = cols + 1;
+    for row in 0..rows {
+        for col in 0..cols {
+            let tl = row * stride + col;
+            let tr = tl + 1;
+            let bl = tl + stride;
+            let br = bl + 1;
+
+            indices.push(tl);
+            indices.push(bl);
+            indices.push(tr);
+
+            indices.push(tr);
+            indices.push(bl);
+            indices.push(br);
+        }
+    }
+
+    build_primitive_model("Plane", vertices, normals, texcoords, indices)
+}
+
+/// Generate a cylinder standing along Y with the given radius, height, and
+/// number of radial segments. Includes top and bottom caps.
+pub fn generate_cylinder(radius: f32, height: f32, segments: u32) -> ImportedModel {
+    let segments = segments.max(3);
+    let half_h = height * 0.5;
+
+    let mut vertices = Vec::new();
+    let mut normals = Vec::new();
+    let mut texcoords = Vec::new();
+    let mut indices = Vec::new();
+
+    // ── Side wall ──
+    // Two rings: bottom (y = -half_h) and top (y = +half_h).
+    for ring in 0..=1u32 {
+        let y = if ring == 0 { -half_h } else { half_h };
+        let v = ring as f32;
+        for seg in 0..=segments {
+            let theta = std::f32::consts::TAU * seg as f32 / segments as f32;
+            let (sin_t, cos_t) = theta.sin_cos();
+            vertices.push(Vec3::new(cos_t * radius, y, sin_t * radius));
+            normals.push(Vec3::new(cos_t, 0.0, sin_t));
+            texcoords.push(Vec2::new(seg as f32 / segments as f32, v));
+        }
+    }
+
+    let stride = segments + 1;
+    for seg in 0..segments {
+        let bl = seg;
+        let br = seg + 1;
+        let tl = seg + stride;
+        let tr = seg + stride + 1;
+
+        indices.push(bl);
+        indices.push(br);
+        indices.push(tl);
+
+        indices.push(br);
+        indices.push(tr);
+        indices.push(tl);
+    }
+
+    // ── Top cap ──
+    let top_center_idx = vertices.len() as u32;
+    vertices.push(Vec3::new(0.0, half_h, 0.0));
+    normals.push(Vec3::Y);
+    texcoords.push(Vec2::new(0.5, 0.5));
+
+    for seg in 0..=segments {
+        let theta = std::f32::consts::TAU * seg as f32 / segments as f32;
+        let (sin_t, cos_t) = theta.sin_cos();
+        vertices.push(Vec3::new(cos_t * radius, half_h, sin_t * radius));
+        normals.push(Vec3::Y);
+        texcoords.push(Vec2::new(cos_t * 0.5 + 0.5, sin_t * 0.5 + 0.5));
+    }
+
+    for seg in 0..segments {
+        indices.push(top_center_idx);
+        indices.push(top_center_idx + 1 + seg);
+        indices.push(top_center_idx + 2 + seg);
+    }
+
+    // ── Bottom cap ──
+    let bot_center_idx = vertices.len() as u32;
+    vertices.push(Vec3::new(0.0, -half_h, 0.0));
+    normals.push(-Vec3::Y);
+    texcoords.push(Vec2::new(0.5, 0.5));
+
+    for seg in 0..=segments {
+        let theta = std::f32::consts::TAU * seg as f32 / segments as f32;
+        let (sin_t, cos_t) = theta.sin_cos();
+        vertices.push(Vec3::new(cos_t * radius, -half_h, sin_t * radius));
+        normals.push(-Vec3::Y);
+        texcoords.push(Vec2::new(cos_t * 0.5 + 0.5, sin_t * 0.5 + 0.5));
+    }
+
+    for seg in 0..segments {
+        indices.push(bot_center_idx);
+        indices.push(bot_center_idx + 2 + seg);
+        indices.push(bot_center_idx + 1 + seg);
+    }
+
+    build_primitive_model("Cylinder", vertices, normals, texcoords, indices)
+}
+
+/// Generate a cone standing along Y with the apex at the top. Includes a bottom
+/// cap disc.
+pub fn generate_cone(radius: f32, height: f32, segments: u32) -> ImportedModel {
+    let segments = segments.max(3);
+    let half_h = height * 0.5;
+
+    let mut vertices = Vec::new();
+    let mut normals = Vec::new();
+    let mut texcoords = Vec::new();
+    let mut indices = Vec::new();
+
+    // The slope angle for the cone side normals.
+    let slope = radius / height;
+    let ny = 1.0 / (1.0 + slope * slope).sqrt();
+    let nr = slope * ny;
+
+    // ── Side surface ──
+    // Apex vertex is duplicated per-segment so each triangle fan slice gets its
+    // own UV. Bottom ring likewise.
+    for seg in 0..=segments {
+        let theta = std::f32::consts::TAU * seg as f32 / segments as f32;
+        let (sin_t, cos_t) = theta.sin_cos();
+
+        let side_normal = Vec3::new(cos_t * nr, ny, sin_t * nr).normalize();
+
+        // Bottom ring vertex
+        vertices.push(Vec3::new(cos_t * radius, -half_h, sin_t * radius));
+        normals.push(side_normal);
+        texcoords.push(Vec2::new(seg as f32 / segments as f32, 1.0));
+
+        // Apex vertex (duplicated per segment for unique UVs)
+        vertices.push(Vec3::new(0.0, half_h, 0.0));
+        normals.push(side_normal);
+        let apex_u = ((seg as f32 + 0.5) / segments as f32).min(1.0);
+        texcoords.push(Vec2::new(apex_u, 0.0));
+    }
+
+    for seg in 0..segments {
+        let base = seg * 2; // bottom-ring of this segment
+        let apex = base + 1; // apex of this segment
+        let next_base = (seg + 1) * 2; // bottom-ring of next segment
+
+        indices.push(base);
+        indices.push(next_base);
+        indices.push(apex);
+    }
+
+    // ── Bottom cap ──
+    let bot_center_idx = vertices.len() as u32;
+    vertices.push(Vec3::new(0.0, -half_h, 0.0));
+    normals.push(-Vec3::Y);
+    texcoords.push(Vec2::new(0.5, 0.5));
+
+    for seg in 0..=segments {
+        let theta = std::f32::consts::TAU * seg as f32 / segments as f32;
+        let (sin_t, cos_t) = theta.sin_cos();
+        vertices.push(Vec3::new(cos_t * radius, -half_h, sin_t * radius));
+        normals.push(-Vec3::Y);
+        texcoords.push(Vec2::new(cos_t * 0.5 + 0.5, sin_t * 0.5 + 0.5));
+    }
+
+    for seg in 0..segments {
+        indices.push(bot_center_idx);
+        indices.push(bot_center_idx + 2 + seg);
+        indices.push(bot_center_idx + 1 + seg);
+    }
+
+    build_primitive_model("Cone", vertices, normals, texcoords, indices)
+}
+
+/// Generate a torus (donut) lying on the XZ plane, centered at the origin.
+///
+/// * `major_r` -- distance from the center of the torus to the center of the tube
+/// * `minor_r` -- radius of the tube
+/// * `major_seg` -- number of segments around the main ring
+/// * `minor_seg` -- number of segments around the tube cross-section
+pub fn generate_torus(
+    major_r: f32,
+    minor_r: f32,
+    major_seg: u32,
+    minor_seg: u32,
+) -> ImportedModel {
+    let major_seg = major_seg.max(3);
+    let minor_seg = minor_seg.max(3);
+
+    let mut vertices = Vec::new();
+    let mut normals = Vec::new();
+    let mut texcoords = Vec::new();
+    let mut indices = Vec::new();
+
+    for i in 0..=major_seg {
+        let u = i as f32 / major_seg as f32;
+        let theta = std::f32::consts::TAU * u;
+        let (sin_theta, cos_theta) = theta.sin_cos();
+
+        // Center of the tube ring at this major angle.
+        let ring_center = Vec3::new(cos_theta * major_r, 0.0, sin_theta * major_r);
+
+        for j in 0..=minor_seg {
+            let v = j as f32 / minor_seg as f32;
+            let phi = std::f32::consts::TAU * v;
+            let (sin_phi, cos_phi) = phi.sin_cos();
+
+            // Local offset along the tube's cross-section.
+            let local_r = major_r + minor_r * cos_phi;
+            let pos = Vec3::new(
+                cos_theta * local_r,
+                sin_phi * minor_r,
+                sin_theta * local_r,
+            );
+
+            let normal = (pos - ring_center).normalize();
+
+            vertices.push(pos);
+            normals.push(normal);
+            texcoords.push(Vec2::new(u, v));
+        }
+    }
+
+    let stride = minor_seg + 1;
+    for i in 0..major_seg {
+        for j in 0..minor_seg {
+            let a = i * stride + j;
+            let b = i * stride + j + 1;
+            let c = (i + 1) * stride + j;
+            let d = (i + 1) * stride + j + 1;
+
+            indices.push(a);
+            indices.push(c);
+            indices.push(b);
+
+            indices.push(b);
+            indices.push(c);
+            indices.push(d);
+        }
+    }
+
+    build_primitive_model("Torus", vertices, normals, texcoords, indices)
+}
+
+/// Generate a named primitive shape with a uniform `size` parameter.
+///
+/// Supported shapes: `"sphere"`, `"cube"`, `"plane"`, `"cylinder"`, `"cone"`,
+/// `"torus"`. Unrecognised names default to a cube.
+///
+/// The `size` parameter is interpreted contextually:
+/// * sphere -- radius
+/// * cube -- side length
+/// * plane -- width = depth = size
+/// * cylinder -- radius = size/2, height = size
+/// * cone -- radius = size/2, height = size
+/// * torus -- major_r = size/2, minor_r = size/6
+pub fn generate_primitive(shape: &str, size: f32) -> ImportedModel {
+    match shape.to_lowercase().as_str() {
+        "sphere" | "sphère" | "sphere_uv" => generate_sphere(size, 32, 16),
+        "cube" | "box" | "boîte" => generate_cube(size, size, size),
+        "plane" | "plan" | "grid" | "grille" => generate_plane(size, size, 1),
+        "cylinder" | "cylindre" => generate_cylinder(size * 0.5, size, 32),
+        "cone" | "cône" => generate_cone(size * 0.5, size, 32),
+        "torus" | "tore" | "donut" => generate_torus(size * 0.5, size / 6.0, 32, 16),
+        _ => generate_cube(size, size, size),
+    }
+}
+
+// ── Tests for mesh primitives ────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Verify that every normal vector has unit length.
+    fn check_normals_unit(normals: &[Vec3]) {
+        for (i, n) in normals.iter().enumerate() {
+            let len = n.length();
+            assert!(
+                (len - 1.0).abs() < 1e-4,
+                "Normal {} has length {} (expected 1.0)",
+                i, len
+            );
+        }
+    }
+
+    /// Verify that all UV coordinates lie in [0, 1].
+    fn check_uvs_range(texcoords: &[Vec2]) {
+        for (i, uv) in texcoords.iter().enumerate() {
+            assert!(
+                uv.x >= -1e-6 && uv.x <= 1.0 + 1e-6 && uv.y >= -1e-6 && uv.y <= 1.0 + 1e-6,
+                "UV {} out of range: ({}, {})",
+                i, uv.x, uv.y
+            );
+        }
+    }
+
+    /// Verify that all indices point to valid vertices.
+    fn check_indices_valid(indices: &[u32], vertex_count: usize) {
+        for (i, &idx) in indices.iter().enumerate() {
+            assert!(
+                (idx as usize) < vertex_count,
+                "Index {} = {} exceeds vertex count {}",
+                i, idx, vertex_count
+            );
+        }
+    }
+
+    /// Run all common validations on a model.
+    fn validate_model(model: &ImportedModel) {
+        assert!(!model.meshes.is_empty(), "Model has no meshes");
+        let mesh = &model.meshes[0];
+
+        let nv = mesh.vertices.len();
+        assert!(nv > 0, "Mesh has no vertices");
+        assert_eq!(mesh.normals.len(), nv, "Normal count mismatch");
+        assert_eq!(mesh.texcoords.len(), nv, "Texcoord count mismatch");
+        assert_eq!(mesh.bone_indices.len(), nv, "bone_indices count mismatch");
+        assert_eq!(mesh.bone_weights.len(), nv, "bone_weights count mismatch");
+        assert!(!mesh.indices.is_empty(), "Mesh has no indices");
+        assert_eq!(mesh.indices.len() % 3, 0, "Index count not a multiple of 3");
+
+        check_normals_unit(&mesh.normals);
+        check_uvs_range(&mesh.texcoords);
+        check_indices_valid(&mesh.indices, nv);
+
+        // Verify skeleton
+        assert_eq!(model.joint_names, vec!["Root".to_string()]);
+        assert_eq!(model.parent_indices, vec![-1]);
+        assert!(model.skin.is_some());
+    }
+
+    #[test]
+    fn test_sphere() {
+        let model = generate_sphere(1.0, 16, 8);
+        validate_model(&model);
+        assert_eq!(model.name, "Sphere");
+        // Expected vertices: (rings+1) * (segments+1) = 9 * 17 = 153
+        assert_eq!(model.meshes[0].vertices.len(), 9 * 17);
+    }
+
+    #[test]
+    fn test_cube() {
+        let model = generate_cube(1.0, 1.0, 1.0);
+        validate_model(&model);
+        assert_eq!(model.name, "Cube");
+        assert_eq!(model.meshes[0].vertices.len(), 24);
+        assert_eq!(model.meshes[0].indices.len(), 36);
+    }
+
+    #[test]
+    fn test_plane() {
+        let model = generate_plane(2.0, 2.0, 4);
+        validate_model(&model);
+        assert_eq!(model.name, "Plane");
+        // (subdivisions+1)^2 = 5*5 = 25 vertices
+        assert_eq!(model.meshes[0].vertices.len(), 25);
+    }
+
+    #[test]
+    fn test_cylinder() {
+        let model = generate_cylinder(0.5, 2.0, 16);
+        validate_model(&model);
+        assert_eq!(model.name, "Cylinder");
+    }
+
+    #[test]
+    fn test_cone() {
+        let model = generate_cone(0.5, 1.0, 16);
+        validate_model(&model);
+        assert_eq!(model.name, "Cone");
+    }
+
+    #[test]
+    fn test_torus() {
+        let model = generate_torus(1.0, 0.3, 24, 12);
+        validate_model(&model);
+        assert_eq!(model.name, "Torus");
+    }
+
+    #[test]
+    fn test_generate_primitive_dispatch() {
+        let shapes = ["sphere", "cube", "plane", "cylinder", "cone", "torus"];
+        for shape in &shapes {
+            let model = generate_primitive(shape, 1.0);
+            validate_model(&model);
+        }
+        // Unknown shape defaults to cube.
+        let model = generate_primitive("unknown_shape", 1.0);
+        assert_eq!(model.name, "Cube");
     }
 }

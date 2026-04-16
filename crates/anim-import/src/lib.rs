@@ -14,6 +14,7 @@ pub mod batch_converter;
 pub mod presets;
 pub mod asset_manager;
 pub mod procedural;
+pub mod texture_loader;
 
 pub use mesh::{ImportedMesh, ImportedSkin, ImportedModel};
 pub use glb_importer::GlbImporter;
@@ -28,4 +29,5 @@ pub use npz_exporter::export_npz;
 pub use batch_converter::{BatchConfig, convert_directory, collect_animation_files};
 pub use presets::SkeletonPreset;
 pub use asset_manager::{AssetManager, AssetFormat};
-pub use procedural::{generate_humanoid_with_animation, HumanoidConfig, BodyColors, generate_creature};
+pub use procedural::{generate_humanoid_with_animation, HumanoidConfig, BodyColors, generate_creature, generate_primitive};
+pub use texture_loader::{load_texture, checkerboard_texture, uv_test_texture};

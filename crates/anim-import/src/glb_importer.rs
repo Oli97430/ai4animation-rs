@@ -161,6 +161,10 @@ impl GlbImporter {
                     bone_indices,
                     bone_weights,
                     texture: None,
+                    normal_map: None,
+                    metallic_roughness_map: None,
+                    emission_map: None,
+                    material_index: 0,
                 });
             }
         }

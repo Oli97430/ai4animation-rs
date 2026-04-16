@@ -26,6 +26,10 @@ pub mod ragdoll;
 pub mod deep_phase;
 pub mod anim_recorder;
 pub mod cloth;
+pub mod keyframe;
+pub mod shape_keys;
+pub mod camera_anim;
+pub mod particles;
 
 pub use hierarchy::Hierarchy;
 pub use motion::Motion;
@@ -65,3 +69,7 @@ pub use deep_phase::{
 };
 pub use anim_recorder::{AnimRecorder, RecorderConfig, RecordedClip, RecordingState, clip_to_motion_data};
 pub use cloth::{ClothSim, ClothConfig, Particle, DistanceConstraint};
+pub use keyframe::{KeyframeAnimation, KeyframeLayer, KeyframeTrack, Keyframe, TweenType};
+pub use shape_keys::{ShapeKey, ShapeKeySet};
+pub use camera_anim::{CameraAnimation, CameraKeyframe, CameraAnimPlayer, CameraState, CameraEasing};
+pub use particles::{ParticleEmitter, EmitterConfig, EmissionShape};

@@ -382,8 +382,107 @@ pub enum AiCommand {
         #[serde(default)]
         model_index: Option<usize>,
     },
+
+    // ── Primitive meshes ─────────────────────────────────
+    /// Create a 3D primitive mesh (sphere, cube, plane, cylinder, cone, torus).
+    CreatePrimitive {
+        /// Shape: "sphere", "cube", "plane", "cylinder", "cone", "torus"
+        shape: String,
+        #[serde(default = "default_prim_size")]
+        size: f32,
+    },
+
+    // ── Texture ──────────────────────────────────────────
+    /// Import a texture (PNG/JPG) and apply to active model.
+    ImportTexture { path: String },
+
+    /// Apply a procedural checkerboard texture to the active model.
+    CheckerboardTexture {
+        #[serde(default = "default_tex_size")]
+        size: u32,
+        #[serde(default = "default_tile_size")]
+        tile: u32,
+    },
+
+    // ── Keyframe editing ─────────────────────────────────
+    /// Insert a keyframe on the Flash timeline at current frame.
+    InsertKeyframe {
+        #[serde(default)]
+        layer: Option<usize>,
+        #[serde(default)]
+        frame: Option<usize>,
+    },
+
+    /// Set tween type on a layer.
+    SetTween {
+        layer: usize,
+        /// "none", "linear", "ease_in", "ease_out", "ease_in_out"
+        tween: String,
+    },
+
+    /// Show/hide the Flash-style timeline panel.
+    ToggleFlashTimeline { visible: bool },
+
+    // ── Shape Keys ──────────────────────────────────────
+    /// Set a shape key weight on the active model.
+    SetShapeKey {
+        /// Shape key name (e.g., "Smile", "Blink_L").
+        name: String,
+        /// Weight [0.0 .. 1.0].
+        weight: f32,
+    },
+
+    /// Reset all shape key weights to zero.
+    ResetShapeKeys,
+
+    // ── Camera Animation ────────────────────────────────
+    /// Create a camera orbit animation.
+    CameraOrbit {
+        #[serde(default = "default_cam_radius")]
+        radius: f32,
+        #[serde(default = "default_cam_height")]
+        height: f32,
+        #[serde(default = "default_cam_duration")]
+        duration: f32,
+    },
+
+    /// Create a camera dolly shot.
+    CameraDolly {
+        start_x: f32, start_y: f32, start_z: f32,
+        end_x: f32, end_y: f32, end_z: f32,
+        #[serde(default = "default_cam_duration")]
+        duration: f32,
+    },
+
+    /// Play/stop camera animation.
+    PlayCameraAnim { play: bool },
+
+    // ── Particles ───────────────────────────────────────
+    /// Create a particle emitter with a preset.
+    CreateParticles {
+        /// Preset: "fire", "smoke", "dust", "sparks", "snow", "rain"
+        preset: String,
+        #[serde(default)]
+        x: Option<f32>,
+        #[serde(default)]
+        y: Option<f32>,
+        #[serde(default)]
+        z: Option<f32>,
+    },
+
+    /// Destroy the active particle emitter.
+    DestroyParticles,
+
+    /// Toggle particle simulation.
+    ToggleParticles { enabled: bool },
 }
 
+fn default_cam_radius() -> f32 { 5.0 }
+fn default_cam_height() -> f32 { 2.0 }
+fn default_cam_duration() -> f32 { 4.0 }
+fn default_prim_size() -> f32 { 1.0 }
+fn default_tex_size() -> u32 { 256 }
+fn default_tile_size() -> u32 { 32 }
 fn default_cloth_w() -> usize { 12 }
 fn default_cloth_h() -> usize { 12 }
 fn default_cloth_size() -> f32 { 1.5 }

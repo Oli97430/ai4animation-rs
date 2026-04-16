@@ -29,6 +29,12 @@ pub struct SkinnedMeshData {
     pub has_texture: bool,
     /// Raw RGBA texture data (if any).
     pub texture_data: Option<TextureRgba>,
+    /// Normal map texture data.
+    pub normal_map_data: Option<TextureRgba>,
+    /// Metallic-roughness map data.
+    pub metallic_roughness_data: Option<TextureRgba>,
+    /// Emission map data.
+    pub emission_data: Option<TextureRgba>,
 }
 
 /// Raw texture image for GPU upload.
@@ -85,6 +91,27 @@ impl SkinnedMeshData {
 
         let has_texture = texture_data.is_some();
 
+        let mut normal_map_data = None;
+        let mut metallic_roughness_data = None;
+        let mut emission_data = None;
+        for mesh in meshes {
+            if normal_map_data.is_none() {
+                if let Some(ref tex) = mesh.normal_map {
+                    normal_map_data = Some(TextureRgba { width: tex.width, height: tex.height, pixels: tex.pixels.clone() });
+                }
+            }
+            if metallic_roughness_data.is_none() {
+                if let Some(ref tex) = mesh.metallic_roughness_map {
+                    metallic_roughness_data = Some(TextureRgba { width: tex.width, height: tex.height, pixels: tex.pixels.clone() });
+                }
+            }
+            if emission_data.is_none() {
+                if let Some(ref tex) = mesh.emission_map {
+                    emission_data = Some(TextureRgba { width: tex.width, height: tex.height, pixels: tex.pixels.clone() });
+                }
+            }
+        }
+
         Self {
             vertices,
             indices,
@@ -97,6 +124,9 @@ impl SkinnedMeshData {
             roughness: 0.5,
             has_texture,
             texture_data,
+            normal_map_data,
+            metallic_roughness_data,
+            emission_data,
         }
     }
 
