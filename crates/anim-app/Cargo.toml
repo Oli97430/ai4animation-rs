@@ -1,0 +1,23 @@
+[package]
+name = "anim-app"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anim-math = { workspace = true }
+anim-core = { workspace = true }
+anim-import = { workspace = true }
+anim-animation = { workspace = true }
+anim-ik = { workspace = true }
+anim-render = { workspace = true }
+anim-ai = { workspace = true }
+anim-gui = { workspace = true }
+glam = { workspace = true }
+eframe = { workspace = true }
+egui = { workspace = true }
+egui-wgpu = { workspace = true }
+wgpu = { workspace = true }
+env_logger = { workspace = true }
+log = { workspace = true }
+anyhow = { workspace = true }
+rfd = { workspace = true }

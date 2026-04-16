@@ -1,0 +1,9 @@
+[package]
+name = "anim-math"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+glam = { workspace = true }
+ndarray = { workspace = true }
+bytemuck = { workspace = true }

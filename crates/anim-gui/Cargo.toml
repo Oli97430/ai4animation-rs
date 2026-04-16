@@ -1,0 +1,19 @@
+[package]
+name = "anim-gui"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anim-math = { workspace = true }
+anim-core = { workspace = true }
+anim-import = { workspace = true }
+anim-animation = { workspace = true }
+anim-ik = { workspace = true }
+anim-render = { workspace = true }
+anim-ai = { workspace = true }
+glam = { workspace = true }
+egui = { workspace = true }
+rfd = { workspace = true }
+log = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }

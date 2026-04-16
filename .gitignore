@@ -1,0 +1,21 @@
+/target/
+*.pdb
+*.exe
+*.dll
+*.so
+*.dylib
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Models/data (large binary files)
+models/locomotion/*.onnx
+models/locomotion/*.pt
+*.npz

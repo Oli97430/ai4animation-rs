@@ -1,0 +1,25 @@
+//! GUI panels.
+
+pub mod menu_bar;
+pub mod hierarchy;
+pub mod inspector;
+pub mod timeline;
+pub mod console;
+pub mod viewport;
+pub mod render_settings;
+pub mod dope_sheet;
+pub mod motion_editor;
+pub mod profiler;
+pub mod batch_panel;
+pub mod recorder;
+pub mod asset_browser;
+pub mod shortcut_editor;
+pub mod ai_chat;
+pub mod training;
+pub mod motion_matching;
+pub mod state_machine_editor;
+pub mod pose_editor;
+pub mod blend_tree_editor;
+pub mod graph_editor;
+pub mod ragdoll_panel;
+pub mod deep_phase_panel;

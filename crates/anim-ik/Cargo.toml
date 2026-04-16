@@ -1,0 +1,8 @@
+[package]
+name = "anim-ik"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anim-math = { workspace = true }
+glam = { workspace = true }

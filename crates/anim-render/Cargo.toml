@@ -1,0 +1,14 @@
+[package]
+name = "anim-render"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anim-math = { workspace = true }
+anim-core = { workspace = true }
+anim-import = { workspace = true }
+glam = { workspace = true }
+wgpu = { workspace = true }
+bytemuck = { workspace = true }
+image = { workspace = true }
+log = { workspace = true }
