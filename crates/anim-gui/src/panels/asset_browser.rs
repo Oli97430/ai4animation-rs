@@ -6,7 +6,7 @@ use crate::app_state::AppState;
 use crate::theme::accent;
 
 /// Supported file extensions for the asset browser.
-const SUPPORTED_EXTENSIONS: &[&str] = &["glb", "gltf", "bvh", "npz", "fbx"];
+const SUPPORTED_EXTENSIONS: &[&str] = &["glb", "gltf", "bvh", "npz", "fbx", "usd", "usda"];
 
 /// State for the asset browser panel.
 pub struct AssetBrowserState {
@@ -148,6 +148,31 @@ pub fn show_with_manager(
             browser.dirty = true;
         }
 
+        // Quick access to samples directory
+        if ui.small_button("📦").on_hover_text("Fichiers exemples").clicked() {
+            let exe_dir = std::env::current_exe()
+                .ok()
+                .and_then(|p| p.parent().map(|p| p.to_path_buf()));
+            // Try: exe/../../../samples, then ./samples, then crate-relative
+            let candidates = [
+                exe_dir.as_ref().and_then(|d| {
+                    d.parent().and_then(|p| p.parent().and_then(|p| p.parent()))
+                        .map(|p| p.join("samples"))
+                }),
+                Some(PathBuf::from("samples")),
+                Some(PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                    .parent().unwrap_or(Path::new("."))
+                    .parent().unwrap_or(Path::new("."))
+                    .join("samples")),
+            ];
+            for candidate in candidates.iter().flatten() {
+                if candidate.is_dir() {
+                    browser.navigate_to(candidate);
+                    break;
+                }
+            }
+        }
+
         // Current path (truncated)
         let path_str = browser.current_dir.to_string_lossy();
         let display_path = if path_str.len() > 60 {
@@ -215,6 +240,7 @@ pub fn show_with_manager(
                         "bvh" => "🦴",
                         "npz" => "📊",
                         "fbx" => "🎬",
+                        "usd" | "usda" => "🎭",
                         _ => "📄",
                     }
                 };
@@ -313,6 +339,15 @@ fn load_file(
             "bvh" => anim_import::BvhImporter::load(path, 0.01),
             "npz" => anim_import::NpzImporter::load(path),
             "fbx" => anim_import::FbxImporter::load(path),
+            "usd" | "usda" => {
+                match anim_import::import_usd(path) {
+                    Ok(m) => Ok(m),
+                    Err(e) => {
+                        state.log_error(&format!("Erreur USD: {}", e));
+                        return;
+                    }
+                }
+            }
             _ => {
                 state.log_warn(&format!("Format non supporte: {}", extension));
                 return;

@@ -2060,6 +2060,64 @@ fn execute_ai_command(cmd: AiCommand, state: &mut AppState, asset_manager: &mut 
             state.log_info(&format!("[IA] Créature créée: {} ({:.1}m)", name, height));
         }
 
+        // ── Display toggles (advanced) ──────────────────────
+        AiCommand::ToggleRootMotion { visible } => {
+            state.show_root_motion = visible;
+            state.log_info(&format!("[IA] Root motion: {}", if visible { "ON" } else { "OFF" }));
+        }
+        AiCommand::ToggleOnionSkinning { visible } => {
+            state.onion_skinning = visible;
+            state.log_info(&format!("[IA] Onion skinning: {}", if visible { "ON" } else { "OFF" }));
+        }
+        AiCommand::ToggleGuidance { visible } => {
+            state.show_guidance = visible;
+            state.log_info(&format!("[IA] Guidance: {}", if visible { "ON" } else { "OFF" }));
+        }
+        AiCommand::ToggleTracking { visible } => {
+            state.show_tracking = visible;
+            state.log_info(&format!("[IA] Tracking: {}", if visible { "ON" } else { "OFF" }));
+        }
+
+        // ── IK Configuration ──────────────────────────────
+        AiCommand::SetIkConstraints { enabled } => {
+            state.ik_use_constraints = enabled;
+            state.log_info(&format!("[IA] Contraintes IK: {}", if enabled { "ON" } else { "OFF" }));
+        }
+        AiCommand::SetIkPoleTarget { enabled, x, y, z, weight } => {
+            state.ik_use_pole_target = enabled;
+            if let Some(px) = x { state.ik_pole_position.x = px; }
+            if let Some(py) = y { state.ik_pole_position.y = py; }
+            if let Some(pz) = z { state.ik_pole_position.z = pz; }
+            if let Some(w) = weight { state.ik_pole_weight = w.clamp(0.0, 1.0); }
+            state.log_info(&format!("[IA] Pole target: {}", if enabled { "ON" } else { "OFF" }));
+        }
+        AiCommand::SetIkPreset { preset } => {
+            use anim_gui::app_state::IkPreset;
+            state.ik_preset = match preset.to_lowercase().as_str() {
+                "human_arm" | "bras" | "bras_humain" => IkPreset::HumanArm,
+                "human_leg" | "jambe" | "jambe_humaine" => IkPreset::HumanLeg,
+                "custom" | "personnalise" => IkPreset::Custom,
+                _ => IkPreset::None,
+            };
+            state.log_info(&format!("[IA] Préréglage IK: {}", preset));
+        }
+
+        // ── Cloth configuration ───────────────────────────
+        AiCommand::SetClothConfig { gravity, damping, stiffness, iterations, ground_y, wind_x, wind_z } => {
+            if let Some(ref mut cloth) = state.cloth_sim {
+                if let Some(g) = gravity { cloth.config.gravity.y = g; }
+                if let Some(d) = damping { cloth.config.damping = d.clamp(0.0, 0.5); }
+                if let Some(s) = stiffness { cloth.config.stiffness = s.clamp(0.0, 1.0); }
+                if let Some(i) = iterations { cloth.config.iterations = i.clamp(1, 20); }
+                if let Some(gy) = ground_y { cloth.config.ground_y = gy; }
+                if let Some(wx) = wind_x { cloth.config.wind.x = wx; }
+                if let Some(wz) = wind_z { cloth.config.wind.z = wz; }
+                state.log_info("[IA] Configuration tissu mise à jour");
+            } else {
+                state.log_warn("[IA] Pas de tissu actif");
+            }
+        }
+
         AiCommand::ConvertModel { model_path, output_dir } => {
             state.log_info(&format!("[IA] Conversion PT→ONNX: {}", model_path));
 

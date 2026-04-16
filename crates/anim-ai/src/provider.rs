@@ -171,6 +171,10 @@ Affichage:
 - {"action": "toggle_velocities", "visible": true}
 - {"action": "toggle_contacts", "visible": true}
 - {"action": "toggle_trajectory", "visible": true}
+- {"action": "toggle_root_motion", "visible": true} — Visualisation du root motion
+- {"action": "toggle_onion_skinning", "visible": true} — Pelure d'oignon (ghosting)
+- {"action": "toggle_guidance", "visible": true} — Module de guidage
+- {"action": "toggle_tracking", "visible": true} — Module de tracking
 
 Rendu (set_render, clés disponibles):
 - Eclairage: ambient_strength, sun_strength, sky_strength, ground_strength, exposure, light_yaw, light_pitch
@@ -182,6 +186,9 @@ Exemple: {"action": "set_render", "key": "ambient_strength", "value": 0.3}
 
 IK:
 - {"action": "ik_solve", "root": "Shoulder_L", "tip": "Hand_L", "target_x": 1, "target_y": 1.5, "target_z": 0.5}
+- {"action": "set_ik_constraints", "enabled": true} — Activer/désactiver les limites angulaires
+- {"action": "set_ik_pole_target", "enabled": true, "x": 0, "y": 1, "z": 1, "weight": 0.8} — Pole target
+- {"action": "set_ik_preset", "preset": "human_arm"} — Préréglage: none/human_arm/human_leg/custom
 
 Panneaux:
 - {"action": "show_panel", "panel": "console"} / {"action": "hide_panel", "panel": "console"}
@@ -252,6 +259,7 @@ Tissu / Soft-body:
 - {"action": "create_cloth", "width": 12, "height": 12, "size": 1.5} — Créer une grille de tissu
 - {"action": "destroy_cloth"} — Supprimer le tissu
 - {"action": "toggle_cloth", "enabled": true} — Activer/désactiver la simulation
+- {"action": "set_cloth_config", "gravity": -9.81, "damping": 0.01, "stiffness": 0.8, "iterations": 5, "ground_y": 0.0, "wind_x": 5.0, "wind_z": 0.0} — Configurer le tissu (tous les champs sont optionnels)
 
 Matériaux:
 - {"action": "set_material", "color": [255, 200, 100], "metallic": 0.5, "roughness": 0.3} — Modifier le matériau du modèle actif

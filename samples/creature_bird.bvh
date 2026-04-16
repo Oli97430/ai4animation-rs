@@ -1,0 +1,114 @@
+HIERARCHY
+ROOT Body
+{
+  OFFSET 0.000000 0.200000 0.000000
+  CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation
+  JOINT Neck
+  {
+    OFFSET 0.000000 0.060000 0.080000
+    CHANNELS 3 Zrotation Xrotation Yrotation
+    JOINT Head
+    {
+      OFFSET 0.000000 0.060000 0.040000
+      CHANNELS 3 Zrotation Xrotation Yrotation
+      JOINT Beak
+      {
+        OFFSET 0.000000 -0.010000 0.060000
+        CHANNELS 3 Zrotation Xrotation Yrotation
+        End Site
+        {
+          OFFSET 0.000000 0.100000 0.000000
+        }
+      }
+    }
+  }
+  JOINT Tail
+  {
+    OFFSET 0.000000 -0.020000 -0.120000
+    CHANNELS 3 Zrotation Xrotation Yrotation
+    End Site
+    {
+      OFFSET 0.000000 0.100000 0.000000
+    }
+  }
+  JOINT LWing_Base
+  {
+    OFFSET 0.060000 0.020000 0.000000
+    CHANNELS 3 Zrotation Xrotation Yrotation
+    JOINT LWing_Mid
+    {
+      OFFSET 0.160000 0.020000 -0.020000
+      CHANNELS 3 Zrotation Xrotation Yrotation
+      JOINT LWing_Tip
+      {
+        OFFSET 0.130000 -0.020000 -0.020000
+        CHANNELS 3 Zrotation Xrotation Yrotation
+        End Site
+        {
+          OFFSET 0.000000 0.100000 0.000000
+        }
+      }
+    }
+  }
+  JOINT RWing_Base
+  {
+    OFFSET -0.060000 0.020000 0.000000
+    CHANNELS 3 Zrotation Xrotation Yrotation
+    JOINT RWing_Mid
+    {
+      OFFSET -0.160000 0.020000 -0.020000
+      CHANNELS 3 Zrotation Xrotation Yrotation
+      JOINT RWing_Tip
+      {
+        OFFSET -0.130000 -0.020000 -0.020000
+        CHANNELS 3 Zrotation Xrotation Yrotation
+        End Site
+        {
+          OFFSET 0.000000 0.100000 0.000000
+        }
+      }
+    }
+  }
+  JOINT LLeg_Hip
+  {
+    OFFSET 0.040000 -0.050000 -0.020000
+    CHANNELS 3 Zrotation Xrotation Yrotation
+    JOINT LLeg_Knee
+    {
+      OFFSET 0.000000 -0.090000 0.040000
+      CHANNELS 3 Zrotation Xrotation Yrotation
+      JOINT LLeg_Foot
+      {
+        OFFSET 0.000000 -0.060000 0.020000
+        CHANNELS 3 Zrotation Xrotation Yrotation
+        End Site
+        {
+          OFFSET 0.000000 0.100000 0.000000
+        }
+      }
+    }
+  }
+  JOINT RLeg_Hip
+  {
+    OFFSET -0.040000 -0.050000 -0.020000
+    CHANNELS 3 Zrotation Xrotation Yrotation
+    JOINT RLeg_Knee
+    {
+      OFFSET 0.000000 -0.090000 0.040000
+      CHANNELS 3 Zrotation Xrotation Yrotation
+      JOINT RLeg_Foot
+      {
+        OFFSET 0.000000 -0.060000 0.020000
+        CHANNELS 3 Zrotation Xrotation Yrotation
+        End Site
+        {
+          OFFSET 0.000000 0.100000 0.000000
+        }
+      }
+    }
+  }
+}
+MOTION
+Frames: 1
+Frame Time: 0.033333
+0.000000 0.200000 0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000

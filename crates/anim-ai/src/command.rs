@@ -315,6 +315,61 @@ pub enum AiCommand {
         height: f32,
     },
 
+    // ── Display toggles (advanced) ──────────────────
+    /// Toggle root motion visualization.
+    ToggleRootMotion { visible: bool },
+
+    /// Toggle onion skinning (ghosting).
+    ToggleOnionSkinning { visible: bool },
+
+    /// Toggle guidance module visualization.
+    ToggleGuidance { visible: bool },
+
+    /// Toggle tracking module visualization.
+    ToggleTracking { visible: bool },
+
+    // ── IK Configuration ──────────────────────────
+    /// Set IK constraint mode.
+    SetIkConstraints { enabled: bool },
+
+    /// Set IK pole target.
+    SetIkPoleTarget {
+        enabled: bool,
+        #[serde(default)]
+        x: Option<f32>,
+        #[serde(default)]
+        y: Option<f32>,
+        #[serde(default)]
+        z: Option<f32>,
+        #[serde(default)]
+        weight: Option<f32>,
+    },
+
+    /// Set IK preset.
+    SetIkPreset {
+        /// Preset name: "none", "human_arm", "human_leg", "custom"
+        preset: String,
+    },
+
+    // ── Cloth configuration ───────────────────────
+    /// Configure cloth simulation parameters.
+    SetClothConfig {
+        #[serde(default)]
+        gravity: Option<f32>,
+        #[serde(default)]
+        damping: Option<f32>,
+        #[serde(default)]
+        stiffness: Option<f32>,
+        #[serde(default)]
+        iterations: Option<usize>,
+        #[serde(default)]
+        ground_y: Option<f32>,
+        #[serde(default)]
+        wind_x: Option<f32>,
+        #[serde(default)]
+        wind_z: Option<f32>,
+    },
+
     /// Create a node in the blend tree.
     CreateBlendTreeNode {
         /// Node type: "clip", "blend1d" / "1d", "blend2d" / "2d", "lerp"

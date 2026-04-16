@@ -1,0 +1,89 @@
+HIERARCHY
+ROOT Head
+{
+  OFFSET 0.000000 0.012000 -0.000000
+  CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation
+  JOINT Seg_1
+  {
+    OFFSET 0.000000 -0.005557 -0.010500
+    CHANNELS 3 Zrotation Xrotation Yrotation
+    JOINT Seg_2
+    {
+      OFFSET 0.000000 0.000404 -0.010500
+      CHANNELS 3 Zrotation Xrotation Yrotation
+      JOINT Seg_3
+      {
+        OFFSET 0.000000 0.000328 -0.010500
+        CHANNELS 3 Zrotation Xrotation Yrotation
+        JOINT Seg_4
+        {
+          OFFSET 0.000000 0.000223 -0.010500
+          CHANNELS 3 Zrotation Xrotation Yrotation
+          JOINT Seg_5
+          {
+            OFFSET 0.000000 0.000098 -0.010500
+            CHANNELS 3 Zrotation Xrotation Yrotation
+            JOINT Seg_6
+            {
+              OFFSET 0.000000 -0.000035 -0.010500
+              CHANNELS 3 Zrotation Xrotation Yrotation
+              JOINT Seg_7
+              {
+                OFFSET 0.000000 -0.000166 -0.010500
+                CHANNELS 3 Zrotation Xrotation Yrotation
+                JOINT Seg_8
+                {
+                  OFFSET 0.000000 -0.000282 -0.010500
+                  CHANNELS 3 Zrotation Xrotation Yrotation
+                  JOINT Seg_9
+                  {
+                    OFFSET 0.000000 -0.000372 -0.010500
+                    CHANNELS 3 Zrotation Xrotation Yrotation
+                    JOINT Seg_10
+                    {
+                      OFFSET 0.000000 -0.000429 -0.010500
+                      CHANNELS 3 Zrotation Xrotation Yrotation
+                      JOINT Seg_11
+                      {
+                        OFFSET 0.000000 -0.000448 -0.010500
+                        CHANNELS 3 Zrotation Xrotation Yrotation
+                        JOINT Seg_12
+                        {
+                          OFFSET 0.000000 -0.000427 -0.010500
+                          CHANNELS 3 Zrotation Xrotation Yrotation
+                          JOINT Seg_13
+                          {
+                            OFFSET 0.000000 -0.000368 -0.010500
+                            CHANNELS 3 Zrotation Xrotation Yrotation
+                            JOINT Seg_14
+                            {
+                              OFFSET 0.000000 -0.000276 -0.010500
+                              CHANNELS 3 Zrotation Xrotation Yrotation
+                              JOINT Seg_15
+                              {
+                                OFFSET 0.000000 -0.000159 -0.010500
+                                CHANNELS 3 Zrotation Xrotation Yrotation
+                                End Site
+                                {
+                                  OFFSET 0.000000 0.100000 0.000000
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+MOTION
+Frames: 1
+Frame Time: 0.033333
+0.000000 0.012000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000

@@ -1,0 +1,180 @@
+HIERARCHY
+ROOT Body
+{
+  OFFSET 0.000000 0.100000 0.000000
+  CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation
+  JOINT LeftEye
+  {
+    OFFSET 0.050000 0.050000 0.075000
+    CHANNELS 3 Zrotation Xrotation Yrotation
+    End Site
+    {
+      OFFSET 0.000000 0.100000 0.000000
+    }
+  }
+  JOINT RightEye
+  {
+    OFFSET -0.050000 0.050000 0.075000
+    CHANNELS 3 Zrotation Xrotation Yrotation
+    End Site
+    {
+      OFFSET 0.000000 0.100000 0.000000
+    }
+  }
+  JOINT LClaw_Base
+  {
+    OFFSET 0.100000 0.000000 0.062500
+    CHANNELS 3 Zrotation Xrotation Yrotation
+    JOINT LClaw_Mid
+    {
+      OFFSET 0.100000 0.025000 0.037500
+      CHANNELS 3 Zrotation Xrotation Yrotation
+      JOINT LClaw_Tip
+      {
+        OFFSET 0.075000 -0.012500 -0.025000
+        CHANNELS 3 Zrotation Xrotation Yrotation
+        End Site
+        {
+          OFFSET 0.000000 0.100000 0.000000
+        }
+      }
+    }
+  }
+  JOINT RClaw_Base
+  {
+    OFFSET -0.100000 0.000000 0.062500
+    CHANNELS 3 Zrotation Xrotation Yrotation
+    JOINT RClaw_Mid
+    {
+      OFFSET -0.100000 0.025000 0.037500
+      CHANNELS 3 Zrotation Xrotation Yrotation
+      JOINT RClaw_Tip
+      {
+        OFFSET -0.075000 -0.012500 -0.025000
+        CHANNELS 3 Zrotation Xrotation Yrotation
+        End Site
+        {
+          OFFSET 0.000000 0.100000 0.000000
+        }
+      }
+    }
+  }
+  JOINT L1_Hip
+  {
+    OFFSET 0.075000 -0.025000 -0.025000
+    CHANNELS 3 Zrotation Xrotation Yrotation
+    JOINT L1_Knee
+    {
+      OFFSET 0.100000 0.075000 -0.025000
+      CHANNELS 3 Zrotation Xrotation Yrotation
+      JOINT L1_Foot
+      {
+        OFFSET 0.050000 -0.150000 -0.012500
+        CHANNELS 3 Zrotation Xrotation Yrotation
+        End Site
+        {
+          OFFSET 0.000000 0.100000 0.000000
+        }
+      }
+    }
+  }
+  JOINT L2_Hip
+  {
+    OFFSET 0.075000 -0.025000 -0.075000
+    CHANNELS 3 Zrotation Xrotation Yrotation
+    JOINT L2_Knee
+    {
+      OFFSET 0.112500 0.075000 -0.050000
+      CHANNELS 3 Zrotation Xrotation Yrotation
+      JOINT L2_Foot
+      {
+        OFFSET 0.050000 -0.150000 -0.025000
+        CHANNELS 3 Zrotation Xrotation Yrotation
+        End Site
+        {
+          OFFSET 0.000000 0.100000 0.000000
+        }
+      }
+    }
+  }
+  JOINT L3_Hip
+  {
+    OFFSET 0.062500 -0.025000 -0.125000
+    CHANNELS 3 Zrotation Xrotation Yrotation
+    JOINT L3_Knee
+    {
+      OFFSET 0.112500 0.075000 -0.075000
+      CHANNELS 3 Zrotation Xrotation Yrotation
+      JOINT L3_Foot
+      {
+        OFFSET 0.050000 -0.150000 -0.025000
+        CHANNELS 3 Zrotation Xrotation Yrotation
+        End Site
+        {
+          OFFSET 0.000000 0.100000 0.000000
+        }
+      }
+    }
+  }
+  JOINT R1_Hip
+  {
+    OFFSET -0.075000 -0.025000 -0.025000
+    CHANNELS 3 Zrotation Xrotation Yrotation
+    JOINT R1_Knee
+    {
+      OFFSET -0.100000 0.075000 -0.025000
+      CHANNELS 3 Zrotation Xrotation Yrotation
+      JOINT R1_Foot
+      {
+        OFFSET -0.050000 -0.150000 -0.012500
+        CHANNELS 3 Zrotation Xrotation Yrotation
+        End Site
+        {
+          OFFSET 0.000000 0.100000 0.000000
+        }
+      }
+    }
+  }
+  JOINT R2_Hip
+  {
+    OFFSET -0.075000 -0.025000 -0.075000
+    CHANNELS 3 Zrotation Xrotation Yrotation
+    JOINT R2_Knee
+    {
+      OFFSET -0.112500 0.075000 -0.050000
+      CHANNELS 3 Zrotation Xrotation Yrotation
+      JOINT R2_Foot
+      {
+        OFFSET -0.050000 -0.150000 -0.025000
+        CHANNELS 3 Zrotation Xrotation Yrotation
+        End Site
+        {
+          OFFSET 0.000000 0.100000 0.000000
+        }
+      }
+    }
+  }
+  JOINT R3_Hip
+  {
+    OFFSET -0.062500 -0.025000 -0.125000
+    CHANNELS 3 Zrotation Xrotation Yrotation
+    JOINT R3_Knee
+    {
+      OFFSET -0.112500 0.075000 -0.075000
+      CHANNELS 3 Zrotation Xrotation Yrotation
+      JOINT R3_Foot
+      {
+        OFFSET -0.050000 -0.150000 -0.025000
+        CHANNELS 3 Zrotation Xrotation Yrotation
+        End Site
+        {
+          OFFSET 0.000000 0.100000 0.000000
+        }
+      }
+    }
+  }
+}
+MOTION
+Frames: 1
+Frame Time: 0.033333
+0.000000 0.100000 0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000 -0.000000 0.000000 -0.000000
