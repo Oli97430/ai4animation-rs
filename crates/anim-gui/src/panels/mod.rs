@@ -28,3 +28,7 @@ pub mod material_editor;
 pub mod cloth_panel;
 pub mod ik_panel;
 pub mod flash_timeline;
+pub mod skybox_panel;
+pub mod lights_panel;
+pub mod constraints_panel;
+pub mod video_export_panel;

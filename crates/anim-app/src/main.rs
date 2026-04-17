@@ -88,6 +88,8 @@ struct AnimApp {
     ik_panel: panels::ik_panel::IkPanel,
     // Flash-style timeline
     flash_timeline: panels::flash_timeline::FlashTimelinePanel,
+    // Video export state
+    video_export: panels::video_export_panel::VideoExportState,
     // Recent files
     recent_files: anim_gui::recent_files::RecentFiles,
     // Auto-save
@@ -144,6 +146,7 @@ impl AnimApp {
             cloth_panel: panels::cloth_panel::ClothPanel::default(),
             ik_panel: panels::ik_panel::IkPanel::default(),
             flash_timeline: panels::flash_timeline::FlashTimelinePanel::default(),
+            video_export: panels::video_export_panel::VideoExportState::new(),
             recent_files: anim_gui::recent_files::RecentFiles::load(),
             auto_save: anim_gui::recent_files::AutoSave::default(),
         }
@@ -1165,6 +1168,74 @@ impl eframe::App for AnimApp {
                     panels::flash_timeline::show(ui, &mut self.flash_timeline, &mut self.state);
                 });
             self.state.show_flash_timeline = visible;
+        }
+
+        // Floating skybox panel
+        if self.state.show_skybox {
+            let mut visible = true;
+            egui::Window::new("🌅 Environnement / Ciel")
+                .open(&mut visible)
+                .default_size([300.0, 420.0])
+                .resizable(true)
+                .collapsible(true)
+                .default_pos([ctx.screen_rect().max.x - 320.0, 80.0])
+                .show(ctx, |ui| {
+                    egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
+                        panels::skybox_panel::show(ui, &mut self.state);
+                    });
+                });
+            self.state.show_skybox = visible;
+        }
+
+        // Floating lights panel
+        if self.state.show_lights {
+            let mut visible = true;
+            egui::Window::new("💡 Éclairage multi-sources")
+                .open(&mut visible)
+                .default_size([360.0, 500.0])
+                .resizable(true)
+                .collapsible(true)
+                .default_pos([ctx.screen_rect().max.x - 380.0, 120.0])
+                .show(ctx, |ui| {
+                    egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
+                        panels::lights_panel::show(ui, &mut self.state);
+                    });
+                });
+            self.state.show_lights = visible;
+        }
+
+        // Floating constraints panel
+        if self.state.show_constraints {
+            let mut visible = true;
+            egui::Window::new("🔗 Contraintes")
+                .open(&mut visible)
+                .default_size([360.0, 420.0])
+                .resizable(true)
+                .collapsible(true)
+                .default_pos([200.0, 200.0])
+                .show(ctx, |ui| {
+                    egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
+                        panels::constraints_panel::show(ui, &mut self.state);
+                    });
+                });
+            self.state.show_constraints = visible;
+        }
+
+        // Floating video export panel
+        if self.state.show_video_export {
+            let mut visible = true;
+            egui::Window::new("🎞️ Export vidéo")
+                .open(&mut visible)
+                .default_size([360.0, 460.0])
+                .resizable(true)
+                .collapsible(true)
+                .default_pos([250.0, 150.0])
+                .show(ctx, |ui| {
+                    egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
+                        panels::video_export_panel::show(ui, &mut self.state, &mut self.video_export);
+                    });
+                });
+            self.state.show_video_export = visible;
         }
 
         // Drain training panel pending commands
@@ -2293,6 +2364,109 @@ fn execute_ai_command(cmd: AiCommand, state: &mut AppState, asset_manager: &mut 
                     }
                 }
             });
+        }
+
+        // ── Phase 5: Video export ──────────────────────────
+        AiCommand::ExportVideo { path, format, width, height, framerate } => {
+            state.log_info(&format!(
+                "[IA] Export vidéo demandé → {} ({}×{} @ {}fps, {})",
+                path, width, height, framerate, format
+            ));
+            // Actual export handled by recorder/video_export in main loop
+            state.show_video_export = true;
+        }
+
+        // ── Phase 5: Skybox ──────────────────────────────
+        AiCommand::SetSkybox { preset } => {
+            use anim_render::SkyEnvironment;
+            state.sky_environment = match preset.to_lowercase().as_str() {
+                "daylight" | "day" => SkyEnvironment::daylight(),
+                "sunset" | "dusk" => SkyEnvironment::sunset(),
+                "night" => SkyEnvironment::night(),
+                "overcast" | "cloudy" => SkyEnvironment::overcast(),
+                "studio" => SkyEnvironment::studio(),
+                _ => {
+                    state.log_warn(&format!("[IA] Preset sky inconnu: {}", preset));
+                    SkyEnvironment::default()
+                }
+            };
+            state.log_info(&format!("[IA] Skybox → {}", preset));
+        }
+        AiCommand::SetSkyConfig { sky_color, horizon_color, ground_color, exposure, sun_intensity } => {
+            if let Some(c) = sky_color { state.sky_environment.sky_color = c; }
+            if let Some(c) = horizon_color { state.sky_environment.horizon_color = c; }
+            if let Some(c) = ground_color { state.sky_environment.ground_color = c; }
+            if let Some(v) = exposure { state.sky_environment.exposure = v; }
+            if let Some(v) = sun_intensity { state.sky_environment.sun_intensity = v; }
+            state.log_info("[IA] Config skybox mise à jour");
+        }
+
+        // ── Phase 5: Lighting ─────────────────────────────
+        AiCommand::SetLightPreset { preset } => {
+            use anim_render::LightScene;
+            state.light_scene = match preset.to_lowercase().as_str() {
+                "three_point" | "threepoint" | "3point" => LightScene::three_point_lighting(),
+                "outdoor" | "daylight" => LightScene::outdoor_daylight(),
+                "studio" => LightScene::studio_setup(),
+                _ => {
+                    state.log_warn(&format!("[IA] Preset éclairage inconnu: {}", preset));
+                    LightScene::three_point_lighting()
+                }
+            };
+            state.log_info(&format!("[IA] Éclairage → {}", preset));
+        }
+        AiCommand::AddLight { light_type, name, x, y, z, color, intensity } => {
+            use anim_render::Light;
+            use glam::Vec3;
+            let pos = Vec3::new(x.unwrap_or(0.0), y.unwrap_or(5.0), z.unwrap_or(0.0));
+            let col = color.unwrap_or([1.0, 1.0, 1.0]);
+            let light = match light_type.to_lowercase().as_str() {
+                "directional" | "dir" | "sun" => {
+                    Light::directional(&name, -pos.normalize_or_zero(), col, intensity)
+                }
+                "point" => Light::point(&name, pos, col, intensity, 15.0),
+                "spot" => Light::spot(&name, pos, Vec3::NEG_Y, col, intensity, 15.0, 0.8),
+                _ => {
+                    state.log_warn(&format!("[IA] Type de lumière inconnu: {}", light_type));
+                    Light::directional(&name, Vec3::NEG_Y, col, intensity)
+                }
+            };
+            let idx = state.light_scene.add_light(light);
+            state.log_info(&format!("[IA] Lumière ajoutée #{}: {}", idx, name));
+        }
+        AiCommand::RemoveLight { index } => {
+            state.light_scene.remove_light(index);
+            state.log_info(&format!("[IA] Lumière #{} supprimée", index));
+        }
+        AiCommand::ClearLights => {
+            state.light_scene.clear();
+            state.log_info("[IA] Toutes les lumières supprimées");
+        }
+
+        // ── Phase 5: Constraints ─────────────────────────
+        AiCommand::AddConstraint { joint, constraint_type, target } => {
+            state.log_info(&format!(
+                "[IA] Contrainte {} sur '{}' (cible: {:?})",
+                constraint_type, joint, target
+            ));
+            state.show_constraints = true;
+        }
+        AiCommand::RemoveConstraints { joint } => {
+            state.log_info(&format!("[IA] Contraintes retirées de '{}'", joint));
+        }
+        AiCommand::ToggleConstraints { visible } => {
+            state.show_constraints = visible;
+        }
+
+        // ── Phase 5: Panel toggles ───────────────────────
+        AiCommand::ToggleSkybox { visible } => {
+            state.show_skybox = visible;
+        }
+        AiCommand::ToggleLights { visible } => {
+            state.show_lights = visible;
+        }
+        AiCommand::ToggleVideoExport { visible } => {
+            state.show_video_export = visible;
         }
     }
 }

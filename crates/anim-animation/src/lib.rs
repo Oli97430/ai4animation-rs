@@ -30,6 +30,9 @@ pub mod keyframe;
 pub mod shape_keys;
 pub mod camera_anim;
 pub mod particles;
+pub mod constraints;
+pub mod gpu_motion_matching;
+pub mod audio_sync;
 
 pub use hierarchy::Hierarchy;
 pub use motion::Motion;
@@ -73,3 +76,11 @@ pub use keyframe::{KeyframeAnimation, KeyframeLayer, KeyframeTrack, Keyframe, Tw
 pub use shape_keys::{ShapeKey, ShapeKeySet};
 pub use camera_anim::{CameraAnimation, CameraKeyframe, CameraAnimPlayer, CameraState, CameraEasing};
 pub use particles::{ParticleEmitter, EmitterConfig, EmissionShape};
+pub use constraints::{Constraint, ConstraintStack, JointConstraint, SplinePath};
+pub use gpu_motion_matching::{
+    GpuMotionDatabase, GpuMotionMatcher, GpuMatchData, MatchResult, InertializationBlender,
+};
+pub use audio_sync::{
+    AudioClip, AudioOnset, AudioSyncController, BeatDetector, FreqBand,
+    LipSyncData, VisemeFrame, VisemeWeights,
+};

@@ -466,6 +466,10 @@ pub fn show(ui: &mut Ui, state: &mut AppState) {
             ui.checkbox(&mut state.show_ik_panel, RichText::new("🎯 IK avancé").size(11.5));
             ui.separator();
             ui.checkbox(&mut state.show_flash_timeline, RichText::new("⚡ Timeline Flash").size(11.5));
+            ui.checkbox(&mut state.show_skybox, RichText::new("🌅 Environnement/Ciel").size(11.5));
+            ui.checkbox(&mut state.show_lights, RichText::new("💡 Éclairage").size(11.5));
+            ui.checkbox(&mut state.show_constraints, RichText::new("🔗 Contraintes").size(11.5));
+            ui.checkbox(&mut state.show_video_export, RichText::new("🎞️ Export vidéo").size(11.5));
         });
 
         // ── Animation ───────────────────────────────────────

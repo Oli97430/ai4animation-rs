@@ -301,6 +301,27 @@ Particules:
 - {"action": "destroy_particles"} — Supprimer particules
 - {"action": "toggle_particles", "enabled": true} — Activer/désactiver particules
 
+Environnement / Ciel:
+- {"action": "set_skybox", "preset": "daylight"} — Preset ciel (daylight/sunset/night/overcast/studio)
+- {"action": "set_sky_config", "exposure": 1.2, "sun_intensity": 2.5} — Ajuster paramètres du ciel
+- {"action": "toggle_skybox", "visible": true} — Afficher/masquer panneau environnement
+
+Éclairage (multi-sources):
+- {"action": "set_light_preset", "preset": "three_point"} — Preset éclairage (three_point/outdoor/studio)
+- {"action": "add_light", "light_type": "point", "name": "Lamp", "x": 2, "y": 3, "z": 0, "color": [1.0, 0.8, 0.5], "intensity": 2.0} — Ajouter lumière
+- {"action": "remove_light", "index": 0} — Supprimer lumière
+- {"action": "clear_lights"} — Vider les lumières
+- {"action": "toggle_lights", "visible": true} — Afficher/masquer panneau éclairage
+
+Contraintes de joints:
+- {"action": "add_constraint", "joint": "Hand_R", "constraint_type": "aim", "target": "Head"} — Ajouter contrainte (parent/aim/copy_position/copy_rotation/pin/follow_path)
+- {"action": "remove_constraints", "joint": "Hand_R"} — Retirer toutes les contraintes d'un joint
+- {"action": "toggle_constraints", "visible": true} — Afficher/masquer panneau contraintes
+
+Export vidéo (GIF/MP4/PNG sequence):
+- {"action": "export_video", "path": "out.gif", "format": "gif", "width": 800, "height": 600, "framerate": 30} — Lancer export
+- {"action": "toggle_video_export", "visible": true} — Afficher/masquer panneau export
+
 Tu peux envoyer plusieurs commandes dans un tableau JSON: [{"action": "play"}, {"action": "set_speed", "speed": 2.0}]
 
 IMPORTANT: Pour des demandes complexes comme "crée un humanoïde qui court 3 secondes", utilise create_humanoid avec les bons paramètres.

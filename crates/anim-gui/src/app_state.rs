@@ -3,7 +3,7 @@
 use glam::Vec3;
 use anim_core::{Scene, Time};
 use anim_animation::{Motion, ContactModule, Trajectory, TrajectoryConfig, GuidanceModule, TrackingModule, RootMotion, RootConfig, RetargetMap, PhaseData, Actor, AnimationTransition, AnimationLayer, MotionDatabase, MotionMatchingController, StateMachine, BlendTree, Ragdoll, DeepPhaseManifold};
-use anim_render::{Camera, DebugDraw, RenderSettings};
+use anim_render::{Camera, DebugDraw, RenderSettings, SkyEnvironment, LightScene};
 use anim_render::grid::GridConfig;
 use anim_render::skinned_mesh::SkinnedMeshData;
 use anim_import::ImportedModel;
@@ -340,6 +340,20 @@ pub struct AppState {
     // Flash-style timeline
     pub show_flash_timeline: bool,
 
+    // Skybox / environment
+    pub sky_environment: SkyEnvironment,
+    pub show_skybox: bool,
+
+    // Multi-light system
+    pub light_scene: LightScene,
+    pub show_lights: bool,
+
+    // Constraints
+    pub show_constraints: bool,
+
+    // Video export
+    pub show_video_export: bool,
+
     // Pending project load (set by menu, processed by main loop with AssetManager access)
     pub pending_project_load: Option<std::path::PathBuf>,
     // Pending frame export (set by AI command, processed by main loop with render access)
@@ -521,6 +535,12 @@ impl AppState {
             show_material_editor: false,
             show_ik_panel: false,
             show_flash_timeline: false,
+            sky_environment: SkyEnvironment::default(),
+            show_skybox: false,
+            light_scene: LightScene::three_point_lighting(),
+            show_lights: false,
+            show_constraints: false,
+            show_video_export: false,
             pending_project_load: None,
             pending_export_frame: None,
             pending_recent_import: None,

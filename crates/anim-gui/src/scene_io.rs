@@ -91,6 +91,16 @@ pub struct PanelVisibility {
     pub show_material_editor: bool,
     #[serde(default)]
     pub show_ik_panel: bool,
+    #[serde(default)]
+    pub show_flash_timeline: bool,
+    #[serde(default)]
+    pub show_skybox: bool,
+    #[serde(default)]
+    pub show_lights: bool,
+    #[serde(default)]
+    pub show_constraints: bool,
+    #[serde(default)]
+    pub show_video_export: bool,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -228,6 +238,11 @@ pub fn save_project(path: &Path, state: &crate::app_state::AppState) -> Result<(
             show_cloth: state.show_cloth,
             show_material_editor: state.show_material_editor,
             show_ik_panel: state.show_ik_panel,
+            show_flash_timeline: state.show_flash_timeline,
+            show_skybox: state.show_skybox,
+            show_lights: state.show_lights,
+            show_constraints: state.show_constraints,
+            show_video_export: state.show_video_export,
         },
         ai_config: None, // AI config saved separately; API keys are not persisted for security
     };
@@ -320,6 +335,11 @@ pub fn apply_project(state: &mut crate::app_state::AppState, project: &ProjectFi
     state.show_cloth = project.panels.show_cloth;
     state.show_material_editor = project.panels.show_material_editor;
     state.show_ik_panel = project.panels.show_ik_panel;
+    state.show_flash_timeline = project.panels.show_flash_timeline;
+    state.show_skybox = project.panels.show_skybox;
+    state.show_lights = project.panels.show_lights;
+    state.show_constraints = project.panels.show_constraints;
+    state.show_video_export = project.panels.show_video_export;
 
     // Active model index
     if let Some(idx) = project.active_model_index {

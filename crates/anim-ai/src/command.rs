@@ -475,6 +475,104 @@ pub enum AiCommand {
 
     /// Toggle particle simulation.
     ToggleParticles { enabled: bool },
+
+    // ── Video Export ───────────────────────────────────
+    /// Export animation as video (GIF, MP4, or PNG sequence).
+    ExportVideo {
+        /// Output file path.
+        path: String,
+        /// Format: "gif", "mp4", "png_sequence"
+        #[serde(default = "default_video_format")]
+        format: String,
+        /// Width in pixels.
+        #[serde(default = "default_video_width")]
+        width: u32,
+        /// Height in pixels.
+        #[serde(default = "default_video_height")]
+        height: u32,
+        /// Frames per second.
+        #[serde(default = "default_video_fps")]
+        framerate: u32,
+    },
+
+    // ── Skybox / Environment ─────────────────────────────
+    /// Set the sky environment preset.
+    SetSkybox {
+        /// Preset: "daylight", "sunset", "night", "overcast", "studio"
+        preset: String,
+    },
+
+    /// Configure sky environment parameters.
+    SetSkyConfig {
+        #[serde(default)]
+        sky_color: Option<[f32; 3]>,
+        #[serde(default)]
+        horizon_color: Option<[f32; 3]>,
+        #[serde(default)]
+        ground_color: Option<[f32; 3]>,
+        #[serde(default)]
+        exposure: Option<f32>,
+        #[serde(default)]
+        sun_intensity: Option<f32>,
+    },
+
+    // ── Lighting ─────────────────────────────────────────
+    /// Set a lighting preset.
+    SetLightPreset {
+        /// Preset: "three_point", "outdoor", "studio"
+        preset: String,
+    },
+
+    /// Add a light to the scene.
+    AddLight {
+        /// Type: "directional", "point", "spot"
+        light_type: String,
+        name: String,
+        #[serde(default)]
+        x: Option<f32>,
+        #[serde(default)]
+        y: Option<f32>,
+        #[serde(default)]
+        z: Option<f32>,
+        #[serde(default)]
+        color: Option<[f32; 3]>,
+        #[serde(default = "default_light_intensity")]
+        intensity: f32,
+    },
+
+    /// Remove a light by index.
+    RemoveLight { index: usize },
+
+    /// Clear all lights.
+    ClearLights,
+
+    // ── Constraints ──────────────────────────────────────
+    /// Add a constraint to a joint.
+    AddConstraint {
+        /// Joint/bone name.
+        joint: String,
+        /// Constraint type: "parent", "aim", "copy_position", "copy_rotation", "pin", "follow_path"
+        constraint_type: String,
+        /// Target joint name (for parent/aim/copy constraints).
+        #[serde(default)]
+        target: Option<String>,
+    },
+
+    /// Remove all constraints from a joint.
+    RemoveConstraints { joint: String },
+
+    /// Toggle constraint panel visibility.
+    ToggleConstraints { visible: bool },
+
+    // ── Panel toggles (new) ──────────────────────────────
+    /// Toggle skybox panel.
+    ToggleSkybox { visible: bool },
+
+    /// Toggle lights panel.
+    ToggleLights { visible: bool },
+
+    /// Toggle video export panel.
+    ToggleVideoExport { visible: bool },
 }
 
 fn default_cam_radius() -> f32 { 5.0 }
@@ -483,6 +581,11 @@ fn default_cam_duration() -> f32 { 4.0 }
 fn default_prim_size() -> f32 { 1.0 }
 fn default_tex_size() -> u32 { 256 }
 fn default_tile_size() -> u32 { 32 }
+fn default_video_format() -> String { "gif".into() }
+fn default_video_width() -> u32 { 800 }
+fn default_video_height() -> u32 { 600 }
+fn default_video_fps() -> u32 { 30 }
+fn default_light_intensity() -> f32 { 2.0 }
 fn default_cloth_w() -> usize { 12 }
 fn default_cloth_h() -> usize { 12 }
 fn default_cloth_size() -> f32 { 1.5 }
